@@ -3,16 +3,15 @@ package com.ug.taskaya.ui.sign_in_screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -21,10 +20,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
 import com.ug.taskaya.ui.composables.ButtonTaskaya
@@ -34,20 +34,37 @@ import com.ug.taskaya.ui.composables.OutlinedTextFieldTaskaya
 import com.ug.taskaya.ui.theme.Ment
 
 @Composable
-fun SignInScreen(navController: NavController){
+fun SignInScreen(
+    navController: NavController,
+    viewModel: SignInViewModel = hiltViewModel()
+){
+
+    val screenState by viewModel.screenState.collectAsState()
 
     ConstraintLayout(
         modifier = Modifier.fillMaxSize()
     ){
-        SignInContent()
+        SignInContent(
+            screenState = screenState,
+            signIn = viewModel::signIn,
+            onEmailChange = viewModel::onChangeEmail,
+            onPasswordChange = viewModel::onChangePassword,
+            signUp = viewModel::signUp
+        )
     }
 
 }
 
 
-@Preview
+
 @Composable
-fun SignInContent(){
+fun SignInContent(
+    screenState: SignInState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    signIn: (String,String) -> Unit,
+    signUp: (String,String) -> Unit
+){
 
     ConstraintLayout(
         modifier = Modifier
@@ -56,7 +73,7 @@ fun SignInContent(){
     ){
 
 
-        val (logo,email,pass,forgetText,loginButton,orText,googleButton,faceButton) = createRefs()
+        val (logo,email,pass,forgetText,loginButton,orText,googleButton,faceButton, signUpText) = createRefs()
 
         Image(
             painter = painterResource(id = R.drawable.logo),
@@ -71,8 +88,6 @@ fun SignInContent(){
                 .size(200.dp)
         )
 
-        var emailValue by remember { mutableStateOf("") }
-
         OutlinedTextFieldTaskaya(
             modifier = Modifier.constrainAs(email) {
                 top.linkTo(logo.bottom, 16.dp)
@@ -80,12 +95,10 @@ fun SignInContent(){
                 end.linkTo(parent.end)
             },
             label = "Email",
-            value = emailValue,
-            onValueChange = {emailValue = it},
+            value = screenState.email,
+            onValueChange = {onEmailChange(it)},
             trailingIconId = R.drawable.mage_email)
 
-
-        var passValue by remember { mutableStateOf("") }
 
         OutlinedPasswordFieldTaskaya(
             modifier = Modifier.constrainAs(pass) {
@@ -94,8 +107,8 @@ fun SignInContent(){
                 end.linkTo(parent.end)
             },
             label = "Password",
-            value = passValue,
-            onValueChange = { passValue = it })
+            value = screenState.password,
+            onValueChange = { onPasswordChange(it) })
 
         Text(
             text = AnnotatedString("Forget Password ?"),
@@ -117,8 +130,11 @@ fun SignInContent(){
             modifier = Modifier.constrainAs(loginButton) {
                 top.linkTo(forgetText.bottom, 32.dp)
             },
-            onClick = { /*TODO*/ },
-            label = "Login")
+            onClick = {
+                signUp(screenState.email,screenState.password)
+            },
+            label = "Login",
+            isLoading = screenState.authState)
 
         Image(
             modifier = Modifier
@@ -144,9 +160,44 @@ fun SignInContent(){
                 .constrainAs(faceButton){
                     top.linkTo(googleButton.bottom,16.dp)
                 },
-            onClick = { /*TODO*/ },
+            onClick = {signIn(screenState.email,screenState.password)}
+            ,
             label = "Continue With Facebook",
             iconId = R.drawable.face
         )
+
+        Row(
+            Modifier.constrainAs(signUpText){
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                top.linkTo(faceButton.bottom,16.dp)
+            }
+        ){
+            Text(
+                text = "Don’t have an account ? ",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFF777777),
+                    textAlign = TextAlign.Center,
+                )
+            )
+
+            Text(
+                modifier = Modifier.clickable {
+                    signUp(screenState.email,screenState.password)
+                },
+                text = "SignUp",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Ment,
+                    textAlign = TextAlign.Center,
+                )
+            )
+        }
     }
 }
