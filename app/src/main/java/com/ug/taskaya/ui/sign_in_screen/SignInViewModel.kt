@@ -9,10 +9,13 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 
+
 @HiltViewModel
 class SignInViewModel @Inject constructor(
 //    private val repository: Repository
+
 ) : ViewModel() {
+
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
@@ -50,7 +53,10 @@ class SignInViewModel @Inject constructor(
 
 
         if (email.isEmpty() || password.isEmpty()){
-            _screenState.update { it.copy(authState = AuthState.Error("Email or Password can't be empty")) }
+            _screenState.update { it.copy(
+                authState = AuthState.Error("Email or Password can't be empty"),
+                message = "Email or Password can't be empty"
+            ) }
             return
         }
 
@@ -58,9 +64,15 @@ class SignInViewModel @Inject constructor(
         auth.signInWithEmailAndPassword(email,password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    _screenState.update { it.copy(authState = AuthState.Authenticated) }
+                    _screenState.update { it.copy(
+                        authState = AuthState.Authenticated,
+                        message = "done"
+                    ) }
                 else
-                    _screenState.update { it.copy(authState = AuthState.Error(task.exception?.message?: "Something went wrong")) }
+                    _screenState.update { it.copy(
+                        authState = AuthState.Error(task.exception?.message?: "Something went wrong"),
+                        message = "Something went wrong"
+                    ) }
             }
     }
 

@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId "com.ug.taskaya"
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -46,12 +46,6 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
 }
 
 dependencies {
@@ -72,9 +66,7 @@ dependencies {
     implementation libs.androidx.navigation.runtime.ktx
     implementation libs.androidx.navigation.compose
     implementation libs.androidx.hilt.navigation.compose.v100
-
-    // Firebase
-    implementation libs.firebase.auth
+    implementation libs.google.googleid
 
     // Testing libraries
     testImplementation libs.junit
@@ -100,6 +92,17 @@ dependencies {
 
     // Lottie animations
     implementation libs.lottie.compose
+
+    // firebase
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation libs.googleid
+    implementation platform(libs.firebase.bom)
+    implementation (libs.google.firebase.auth)
+
+    // lifecycle
+    implementation libs.androidx.lifecycle.runtime.ktx.v261
+
 }
 
 kapt {

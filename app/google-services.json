@@ -12,7 +12,20 @@
           "package_name": "com.ug.taskaya"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1077443442261-1b2v6h69mr2rt6nvtgc9o0q6gd2qbr4c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ug.taskaya",
+            "certificate_hash": "c98fc8ef89a0e6d026d9d95aff171bcbb3bfe9ce"
+          }
+        },
+        {
+          "client_id": "1077443442261-0mvhbtp186n09ci9qf1obgduqqr6jo88.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAKJaejNW7kyedGhHa-JkFT_AUfVb46dms"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1077443442261-0mvhbtp186n09ci9qf1obgduqqr6jo88.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

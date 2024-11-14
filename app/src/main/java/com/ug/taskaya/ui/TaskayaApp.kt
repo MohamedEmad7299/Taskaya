@@ -78,7 +78,7 @@ fun TaskayaApp() {
             NavHost(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
-                startDestination = Screen.SplashScreen.route
+                startDestination = Screen.SignInScreen.route
             ) {
                 composable(Screen.SplashScreen.route) { SplashScreen(navController) }
                 composable(Screen.TasksScreen.route) { TasksScreen(navController) }

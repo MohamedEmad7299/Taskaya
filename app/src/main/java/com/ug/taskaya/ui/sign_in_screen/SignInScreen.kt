@@ -1,5 +1,6 @@
 package com.ug.taskaya.ui.sign_in_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,10 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -32,6 +36,8 @@ import com.ug.taskaya.ui.composables.OutlinedButtonTaskaya
 import com.ug.taskaya.ui.composables.OutlinedPasswordFieldTaskaya
 import com.ug.taskaya.ui.composables.OutlinedTextFieldTaskaya
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.Screen
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignInScreen(
@@ -40,6 +46,14 @@ fun SignInScreen(
 ){
 
     val screenState by viewModel.screenState.collectAsState()
+    val context = LocalContext.current
+    val googleAuthClient = GoogleSignInAuth(context)
+
+    if (screenState.message.isNotEmpty()){
+        LaunchedEffect(key1 = screenState.message){
+            Toast.makeText(context, screenState.message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     ConstraintLayout(
         modifier = Modifier.fillMaxSize()
@@ -49,10 +63,10 @@ fun SignInScreen(
             signIn = viewModel::signIn,
             onEmailChange = viewModel::onChangeEmail,
             onPasswordChange = viewModel::onChangePassword,
-            signUp = viewModel::signUp
+            navigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) },
+            googleSignInAuth = googleAuthClient
         )
     }
-
 }
 
 
@@ -63,8 +77,11 @@ fun SignInContent(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     signIn: (String,String) -> Unit,
-    signUp: (String,String) -> Unit
+    navigateToSignUp: () -> Unit,
+    googleSignInAuth: GoogleSignInAuth
 ){
+
+    val coroutineScope = rememberCoroutineScope()
 
     ConstraintLayout(
         modifier = Modifier
@@ -131,10 +148,10 @@ fun SignInContent(
                 top.linkTo(forgetText.bottom, 32.dp)
             },
             onClick = {
-                signUp(screenState.email,screenState.password)
+                signIn(screenState.email,screenState.password)
             },
             label = "Login",
-            isLoading = screenState.authState)
+            isLoading = screenState.authState == AuthState.Loading)
 
         Image(
             modifier = Modifier
@@ -150,7 +167,11 @@ fun SignInContent(
                 .constrainAs(googleButton) {
                     top.linkTo(orText.bottom, 16.dp)
                 },
-            onClick = { /*TODO*/ },
+            onClick = {
+                coroutineScope.launch {
+                    googleSignInAuth.signIn()
+                }
+            },
             label = "Continue With Google",
             iconId = R.drawable.google
         )
@@ -186,7 +207,7 @@ fun SignInContent(
 
             Text(
                 modifier = Modifier.clickable {
-                    signUp(screenState.email,screenState.password)
+                    navigateToSignUp()
                 },
                 text = "SignUp",
                 style = TextStyle(
