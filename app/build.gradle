@@ -1,5 +1,4 @@
 plugins {
-
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
@@ -67,6 +66,7 @@ dependencies {
     implementation libs.androidx.navigation.compose
     implementation libs.androidx.hilt.navigation.compose.v100
     implementation libs.google.googleid
+    implementation libs.firebase.crashlytics.buildtools
 
     // Testing libraries
     testImplementation libs.junit
@@ -93,16 +93,19 @@ dependencies {
     // Lottie animations
     implementation libs.lottie.compose
 
-    // firebase
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation libs.googleid
+    // Firebase (Using Firebase BOM)
     implementation platform(libs.firebase.bom)
-    implementation (libs.google.firebase.auth)
+    implementation libs.google.firebase.auth
 
-    // lifecycle
+    // Play Services Authentication
+    implementation libs.androidx.credentials
+    implementation libs.androidx.credentials.play.services.auth
+
+    // Facebook SDK
+    implementation libs.facebook.android.sdk.v450
+
+    // Lifecycle
     implementation libs.androidx.lifecycle.runtime.ktx.v261
-
 }
 
 kapt {

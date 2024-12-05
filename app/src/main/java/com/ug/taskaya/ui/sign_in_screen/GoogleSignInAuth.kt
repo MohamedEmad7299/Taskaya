@@ -14,6 +14,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 
+
 class GoogleSignInAuth(
     private val context: Context
 ){
@@ -29,8 +30,6 @@ class GoogleSignInAuth(
     }
 
     suspend fun signIn(): Boolean{
-
-        if(isSignedIn()) return true
 
         try {
 

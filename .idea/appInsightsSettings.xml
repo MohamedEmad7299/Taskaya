@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.ug.taskaya" />
+                  <option name="mobileSdkAppId" value="1:1077443442261:android:5dc6055c65956c143c86dc" />
+                  <option name="projectId" value="taskaya7299" />
+                  <option name="projectNumber" value="1077443442261" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

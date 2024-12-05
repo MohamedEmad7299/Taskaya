@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.ug.taskaya.R
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.AuthState
 
 @Composable
 fun OutlinedTextFieldTaskaya(
@@ -22,7 +23,8 @@ fun OutlinedTextFieldTaskaya(
     label: String,
     value: String,
     trailingIconId: Int,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    authState: AuthState
 ){
 
     OutlinedTextField(
@@ -47,6 +49,7 @@ fun OutlinedTextFieldTaskaya(
             focusedBorderColor = Ment
         ),
         maxLines = 1,
-        shape = RoundedCornerShape(5.dp)
+        shape = RoundedCornerShape(5.dp),
+        isError = (authState == AuthState.Error)
     )
 }

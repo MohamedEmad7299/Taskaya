@@ -1,9 +1,11 @@
 package com.ug.taskaya.ui.sign_in_screen
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,21 +39,24 @@ import com.ug.taskaya.ui.composables.OutlinedButtonTaskaya
 import com.ug.taskaya.ui.composables.OutlinedPasswordFieldTaskaya
 import com.ug.taskaya.ui.composables.OutlinedTextFieldTaskaya
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.AuthState
 import com.ug.taskaya.utils.Screen
 import kotlinx.coroutines.launch
 
 @Composable
 fun SignInScreen(
     navController: NavController,
-    viewModel: SignInViewModel = hiltViewModel()
+    viewModel: SignInViewModel = hiltViewModel(),
+    facebookSignInAuth: FacebookSignInAuth
 ){
 
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
     val googleAuthClient = GoogleSignInAuth(context)
 
+
     if (screenState.message.isNotEmpty()){
-        LaunchedEffect(key1 = screenState.message){
+        LaunchedEffect(key1 = screenState.launchedEffectKey){
             Toast.makeText(context, screenState.message, Toast.LENGTH_SHORT).show()
         }
     }
@@ -64,7 +70,9 @@ fun SignInScreen(
             onEmailChange = viewModel::onChangeEmail,
             onPasswordChange = viewModel::onChangePassword,
             navigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) },
-            googleSignInAuth = googleAuthClient
+            googleSignInAuth = googleAuthClient,
+            facebookSignInAuth = facebookSignInAuth,
+            navigateToResetPasswordScreen = { navController.navigate(Screen.ResetPasswordScreen.route) }
         )
     }
 }
@@ -78,10 +86,14 @@ fun SignInContent(
     onPasswordChange: (String) -> Unit,
     signIn: (String,String) -> Unit,
     navigateToSignUp: () -> Unit,
-    googleSignInAuth: GoogleSignInAuth
+    googleSignInAuth: GoogleSignInAuth,
+    facebookSignInAuth: FacebookSignInAuth,
+    navigateToResetPasswordScreen: () -> Unit,
 ){
 
     val coroutineScope = rememberCoroutineScope()
+
+    val context = LocalContext.current
 
     ConstraintLayout(
         modifier = Modifier
@@ -114,7 +126,9 @@ fun SignInContent(
             label = "Email",
             value = screenState.email,
             onValueChange = {onEmailChange(it)},
-            trailingIconId = R.drawable.mage_email)
+            trailingIconId = R.drawable.mage_email,
+            authState = screenState.authState
+        )
 
 
         OutlinedPasswordFieldTaskaya(
@@ -125,12 +139,19 @@ fun SignInContent(
             },
             label = "Password",
             value = screenState.password,
-            onValueChange = { onPasswordChange(it) })
+            onValueChange = { onPasswordChange(it) },
+            authState = screenState.authState
+        )
 
         Text(
             text = AnnotatedString("Forget Password ?"),
             modifier = Modifier
-                .clickable { }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ){
+                    navigateToResetPasswordScreen()
+                }
                 .constrainAs(forgetText) {
                     end.linkTo(parent.end, 16.dp)
                     top.linkTo(pass.bottom, 8.dp)
@@ -181,7 +202,21 @@ fun SignInContent(
                 .constrainAs(faceButton){
                     top.linkTo(googleButton.bottom,16.dp)
                 },
-            onClick = {signIn(screenState.email,screenState.password)}
+            onClick = {
+                coroutineScope.launch {
+                    facebookSignInAuth.registerFacebookCallback(
+                        onSuccess = { token ->
+                            facebookSignInAuth.handleFacebookAccessToken(token) { success, message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onError = { error ->
+                            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                    facebookSignInAuth.login(context as Activity)
+                }
+            }
             ,
             label = "Continue With Facebook",
             iconId = R.drawable.face
@@ -206,7 +241,10 @@ fun SignInContent(
             )
 
             Text(
-                modifier = Modifier.clickable {
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ){
                     navigateToSignUp()
                 },
                 text = "SignUp",

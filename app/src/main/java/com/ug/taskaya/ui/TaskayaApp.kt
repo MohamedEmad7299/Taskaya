@@ -14,6 +14,8 @@ import com.ug.taskaya.ui.design_matrials.bottomNav.BottomNavigationBar
 import com.ug.taskaya.ui.drawer.SideMenu
 import com.ug.taskaya.ui.onboarding_screen.OnboardingPager
 import com.ug.taskaya.ui.profile_screen.ProfileScreen
+import com.ug.taskaya.ui.reset_password_screen.ResetPasswordScreen
+import com.ug.taskaya.ui.sign_in_screen.FacebookSignInAuth
 import com.ug.taskaya.ui.sign_in_screen.SignInScreen
 import com.ug.taskaya.ui.sign_up_screen.SignUpScreen
 import com.ug.taskaya.ui.splash_screen.SplashScreen
@@ -22,7 +24,7 @@ import com.ug.taskaya.utils.Screen
 import com.ug.taskaya.utils.isInternetConnected
 
 @Composable
-fun TaskayaApp() {
+fun TaskayaApp(facebookSignInAuth: FacebookSignInAuth) {
 
     val navController = rememberNavController()
     val backStackEntry = navController.currentBackStackEntryAsState()
@@ -59,7 +61,7 @@ fun TaskayaApp() {
                         onNavigate = { screen ->
                             if (isInternetConnected(context)) {
                                 if (screen.route == BottomNavScreen.More.route) {
-                                    // Open the drawer when the "More" button is clicked
+
                                     coroutineScope.launch {
                                         drawerState.open()
                                     }
@@ -85,8 +87,9 @@ fun TaskayaApp() {
                 composable(Screen.CalenderScreen.route) { CalenderScreen(navController) }
                 composable(Screen.ProfileScreen.route) { ProfileScreen(navController) }
                 composable(Screen.OnboardingScreen.route) { OnboardingPager(navController) }
-                composable(Screen.SignInScreen.route) { SignInScreen(navController) }
+                composable(Screen.SignInScreen.route) { SignInScreen(navController, facebookSignInAuth = facebookSignInAuth) }
                 composable(Screen.SignUpScreen.route) { SignUpScreen(navController) }
+                composable(Screen.ResetPasswordScreen.route) { ResetPasswordScreen(navController) }
             }
         }
     }

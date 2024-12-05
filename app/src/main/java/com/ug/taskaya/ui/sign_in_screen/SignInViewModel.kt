@@ -2,6 +2,8 @@ package com.ug.taskaya.ui.sign_in_screen
 
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.ug.taskaya.data.repositories.Repository
+import com.ug.taskaya.utils.AuthState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-//    private val repository: Repository
+
+    private val repository: Repository
 
 ) : ViewModel() {
 
@@ -36,11 +39,7 @@ class SignInViewModel @Inject constructor(
 
     val screenState = _screenState.asStateFlow()
 
-    init {
-        checkAuthStatus()
-    }
-
-    fun checkAuthStatus(){
+    private fun checkAuthStatus(){
 
         if (auth.currentUser == null)
             _screenState.update { it.copy(authState =  AuthState.Unauthenticated) }
@@ -49,12 +48,28 @@ class SignInViewModel @Inject constructor(
     }
 
 
-    fun signIn(email: String,password: String){
+    fun signIn(email: String, password: String) {
+
+        _screenState.update { it.copy(authState = AuthState.Loading) }
+
+        repository.signIn(email, password) { isSuccess, message ->
+            _screenState.update {
+                it.copy(
+                    launchedEffectKey = !it.launchedEffectKey,
+                    authState = if (isSuccess) AuthState.Authenticated else AuthState.Error,
+                    message = message
+                )
+            }
+        }
+    }
+
+    fun a11(email: String,password: String){
 
 
         if (email.isEmpty() || password.isEmpty()){
             _screenState.update { it.copy(
-                authState = AuthState.Error("Email or Password can't be empty"),
+                launchedEffectKey = !it.launchedEffectKey,
+                authState = AuthState.Error,
                 message = "Email or Password can't be empty"
             ) }
             return
@@ -65,13 +80,15 @@ class SignInViewModel @Inject constructor(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
                     _screenState.update { it.copy(
+                        launchedEffectKey = !it.launchedEffectKey,
                         authState = AuthState.Authenticated,
-                        message = "done"
+                        message = "Welcome"
                     ) }
                 else
                     _screenState.update { it.copy(
-                        authState = AuthState.Error(task.exception?.message?: "Something went wrong"),
-                        message = "Something went wrong"
+                        launchedEffectKey = !it.launchedEffectKey,
+                        authState = AuthState.Error,
+                        message = "Email or password is incorrect"
                     ) }
             }
     }
@@ -79,9 +96,11 @@ class SignInViewModel @Inject constructor(
 
     fun signUp(email: String,password: String){
 
-
         if (email.isEmpty() || password.isEmpty()){
-            _screenState.update { it.copy(authState = AuthState.Error("Email or Password can't be empty")) }
+            _screenState.update { it.copy(
+                launchedEffectKey = !it.launchedEffectKey,
+                authState = AuthState.Error
+            ) }
             return
         }
 
@@ -90,15 +109,24 @@ class SignInViewModel @Inject constructor(
         auth.createUserWithEmailAndPassword(email,password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    _screenState.update { it.copy(authState = AuthState.Authenticated) }
+                    _screenState.update { it.copy(
+                        launchedEffectKey = !it.launchedEffectKey,
+                        authState = AuthState.Authenticated
+                    ) }
                 else
-                    _screenState.update { it.copy(authState = AuthState.Error(task.exception?.message?: "Something went wrong")) }
+                    _screenState.update { it.copy(
+                        launchedEffectKey = !it.launchedEffectKey,
+                        authState = AuthState.Error
+                    ) }
             }
     }
 
     fun signOut(){
         auth.signOut()
-        _screenState.update { it.copy(authState = AuthState.Unauthenticated) }
+        _screenState.update { it.copy(
+            launchedEffectKey = !it.launchedEffectKey,
+            authState = AuthState.Unauthenticated
+        ) }
     }
 
     fun onChangeEmail(newEmail : String){
@@ -119,10 +147,3 @@ class SignInViewModel @Inject constructor(
 
 }
 
-sealed class AuthState{
-
-    object Authenticated : AuthState()
-    object Unauthenticated : AuthState()
-    object Loading : AuthState()
-    data class Error(val message: String) : AuthState()
-}

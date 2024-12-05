@@ -22,13 +22,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.ug.taskaya.R
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.AuthState
 
 @Composable
 fun OutlinedPasswordFieldTaskaya(
     modifier: Modifier = Modifier,
     label: String,
     value: String,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    authState: AuthState
 ){
 
     var visibility by remember { mutableStateOf(false) }
@@ -59,6 +61,7 @@ fun OutlinedPasswordFieldTaskaya(
         ),
         maxLines = 1,
         shape = RoundedCornerShape(5.dp),
-        visualTransformation = if (visibility) VisualTransformation.None else PasswordVisualTransformation()
+        visualTransformation = if (visibility) VisualTransformation.None else PasswordVisualTransformation(),
+        isError = (authState == AuthState.Error)
     )
 }

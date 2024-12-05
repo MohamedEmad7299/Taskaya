@@ -3,17 +3,15 @@ package com.ug.taskaya.ui.tasks_screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.ButtonDefaults.elevation
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.FloatingActionButtonDefaults
-import androidx.compose.material.Icon
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -36,7 +34,7 @@ fun TasksScreen(navController: NavController){
 @Composable
 fun TasksContent(){
 
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.composition))
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.task_animation))
 
     ConstraintLayout(
         modifier = Modifier
@@ -67,7 +65,7 @@ fun TasksContent(){
                 bottom.linkTo(parent.bottom,32.dp)
             },
             onClick = { /* Handle click */ },
-            backgroundColor = Ment,
+            containerColor = Ment,
             contentColor = Color.White,
             elevation = FloatingActionButtonDefaults.elevation(8.dp)
         ) {

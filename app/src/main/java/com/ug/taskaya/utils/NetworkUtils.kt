@@ -1,4 +1,4 @@
-package com.ug.taskaya.utils
+    package com.ug.taskaya.utils
 
 import android.content.Context
 import android.net.ConnectivityManager

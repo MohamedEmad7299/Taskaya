@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Taskaya</string>
+
+    <string name="facebook_app_id">1694673801426592</string>
+    <string name="fb_login_protocol_scheme">fb1694673801426592</string>
+    <string name="facebook_client_token">f3690f69da29258da40e66b2663c2ac5</string>
+
 </resources>
