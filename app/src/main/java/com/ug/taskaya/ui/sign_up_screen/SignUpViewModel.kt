@@ -1,4 +1,4 @@
-package com.ug.taskaya.ui.sign_in_screen
+package com.ug.taskaya.ui.sign_up_screen
 
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -11,21 +11,24 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 
-
 @HiltViewModel
-class SignInViewModel @Inject constructor(
-    private val repository: Repository,
-    private val auth: FirebaseAuth,
+class SignUpViewModel @Inject constructor(
+    private val repository: Repository
 ) : ViewModel() {
+
+
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val _screenState = MutableStateFlow(
 
-        SignInState(
+        SignUpState(
             message = "",
             launchedEffectKey = false,
             authState = AuthState.Unauthenticated,
             email = "",
-            password = ""
+            password = "",
+            name = "",
+            rePassword = "",
         )
     )
 
@@ -36,21 +39,43 @@ class SignInViewModel @Inject constructor(
         if (auth.currentUser == null)
             _screenState.update { it.copy(authState =  AuthState.Unauthenticated) }
         else _screenState.update { it.copy(authState =  AuthState.Authenticated) }
-
     }
 
+   private fun isSignUpReady(): Boolean{
 
-    fun signIn(email: String, password: String) {
+        if (_screenState.value.password != _screenState.value.rePassword){
 
-        _screenState.update { it.copy(authState = AuthState.Loading) }
+            _screenState.update { it.copy(authState = AuthState.Error ,
+                message = "Password and Re-password must be identical",
+                launchedEffectKey = !it.launchedEffectKey) }
+            return false
+        }
 
-        repository.signIn(email, password) { isSuccess, message ->
-            _screenState.update {
-                it.copy(
-                    launchedEffectKey = !it.launchedEffectKey,
-                    authState = if (isSuccess) AuthState.Authenticated else AuthState.Error,
-                    message = message
-                )
+        if (_screenState.value.name.length < 3){
+
+            _screenState.update { it.copy(authState = AuthState.Error ,
+                message = "Name must be more than 2 characters",
+                launchedEffectKey = !it.launchedEffectKey) }
+            return false
+        }
+
+        return true
+    }
+
+    fun signUp(email: String, password: String) {
+
+        if (isSignUpReady()){
+
+            _screenState.update { it.copy(authState = AuthState.Loading) }
+
+            repository.signUp(email, password) { isSuccess, message ->
+                _screenState.update {
+                    it.copy(
+                        launchedEffectKey = !it.launchedEffectKey,
+                        authState = if (isSuccess) AuthState.Authenticated else AuthState.Error,
+                        message = message
+                    )
+                }
             }
         }
     }
@@ -79,10 +104,20 @@ class SignInViewModel @Inject constructor(
         _screenState.update { it.copy(password = newPassword) }
     }
 
+    fun onChangeRePassword(newPassword : String){
+
+        _screenState.update { it.copy(rePassword = newPassword) }
+    }
+
+    fun onChangeName(name : String){
+
+        _screenState.update { it.copy(name = name) }
+    }
+
     fun onInternetError(){
         _screenState.update { it.copy(
             message = "No Internet Connection",
             launchedEffectKey = !_screenState.value.launchedEffectKey) }
     }
-}
 
+}

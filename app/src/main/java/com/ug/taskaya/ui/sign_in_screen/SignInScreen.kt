@@ -41,6 +41,7 @@ import com.ug.taskaya.ui.composables.OutlinedTextFieldTaskaya
 import com.ug.taskaya.ui.theme.Ment
 import com.ug.taskaya.utils.AuthState
 import com.ug.taskaya.utils.Screen
+import com.ug.taskaya.utils.isInternetConnected
 import kotlinx.coroutines.launch
 
 @Composable
@@ -52,7 +53,6 @@ fun SignInScreen(
 
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
-    val googleAuthClient = GoogleSignInAuth(context)
 
 
     if (screenState.message.isNotEmpty()){
@@ -70,9 +70,9 @@ fun SignInScreen(
             onEmailChange = viewModel::onChangeEmail,
             onPasswordChange = viewModel::onChangePassword,
             navigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) },
-            googleSignInAuth = googleAuthClient,
             facebookSignInAuth = facebookSignInAuth,
-            navigateToResetPasswordScreen = { navController.navigate(Screen.ResetPasswordScreen.route) }
+            navigateToResetPasswordScreen = { navController.navigate(Screen.ResetPasswordScreen.route) },
+            onInternetError = viewModel::onInternetError
         )
     }
 }
@@ -81,19 +81,20 @@ fun SignInScreen(
 
 @Composable
 fun SignInContent(
+    onInternetError: () -> Unit,
     screenState: SignInState,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    signIn: (String,String) -> Unit,
+    signIn: (String, String) -> Unit,
     navigateToSignUp: () -> Unit,
-    googleSignInAuth: GoogleSignInAuth,
     facebookSignInAuth: FacebookSignInAuth,
-    navigateToResetPasswordScreen: () -> Unit,
+    navigateToResetPasswordScreen: () -> Unit
 ){
 
-    val coroutineScope = rememberCoroutineScope()
 
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val googleSignInAuth = GoogleSignInAuth(context)
 
     ConstraintLayout(
         modifier = Modifier
@@ -189,9 +190,14 @@ fun SignInContent(
                     top.linkTo(orText.bottom, 16.dp)
                 },
             onClick = {
-                coroutineScope.launch {
-                    googleSignInAuth.signIn()
-                }
+
+                if (isInternetConnected(context))
+                    coroutineScope.launch {
+
+                        googleSignInAuth.signIn()
+                    }
+                else
+                    onInternetError()
             },
             label = "Continue With Google",
             iconId = R.drawable.google
@@ -206,7 +212,7 @@ fun SignInContent(
                 coroutineScope.launch {
                     facebookSignInAuth.registerFacebookCallback(
                         onSuccess = { token ->
-                            facebookSignInAuth.handleFacebookAccessToken(token) { success, message ->
+                            facebookSignInAuth.handleFacebookAccessToken(token) { _ , message ->
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             }
                         },

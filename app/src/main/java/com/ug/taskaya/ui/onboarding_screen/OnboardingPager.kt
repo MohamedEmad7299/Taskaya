@@ -1,6 +1,5 @@
 package com.ug.taskaya.ui.onboarding_screen
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +14,7 @@ import com.google.accompanist.pager.rememberPagerState
 import com.ug.taskaya.R
 import com.ug.taskaya.utils.Screen
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -43,7 +43,7 @@ fun OnboardingPager(
             OnboardingScreen(
                 image = painterResource(id = images[pageIndex]),
                 onSkip = {
-                    navController.navigate(Screen.TasksScreen.route){
+                    navController.navigate(Screen.SignInScreen.route){
                         popUpTo(navController.graph.id){
                             inclusive = false
                         }
@@ -51,7 +51,7 @@ fun OnboardingPager(
                 },
                 onNext = {
 
-                    if (pageIndex == images.size - 1) navController.navigate(Screen.TasksScreen.route){
+                    if (pageIndex == images.size - 1) navController.navigate(Screen.SignInScreen.route){
                         popUpTo(navController.graph.id){
                             inclusive = false
                         }

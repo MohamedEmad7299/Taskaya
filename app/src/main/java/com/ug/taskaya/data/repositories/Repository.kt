@@ -1,13 +1,46 @@
 package com.ug.taskaya.data.repositories
 
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import javax.inject.Inject
 
 class Repository @Inject constructor(
     private val auth: FirebaseAuth
 ) {
 
+
+    fun signOut(onComplete: () -> Unit) {
+        auth.signOut()
+        onComplete()
+    }
+
+    fun signUp(email: String, password: String, onComplete: (Boolean, String) -> Unit) {
+        if (email.isEmpty() || password.isEmpty()) {
+            onComplete(false, "Email or Password can't be empty")
+            return
+        }
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onComplete(true, "Account Created Successfully")
+                } else {
+                    val exception = task.exception
+                    val errorMessage = when (exception) {
+                        is FirebaseAuthWeakPasswordException -> "Password is too weak"
+                        is FirebaseAuthInvalidCredentialsException -> "Invalid email format"
+                        is FirebaseAuthUserCollisionException -> "Email already in use"
+                        is FirebaseNetworkException -> "Network error. Please check your connection"
+                        else -> exception?.message ?: "Failed to create account"
+                    }
+                    onComplete(false, errorMessage)
+                }
+            }
+    }
 
     fun signIn(email: String, password: String, onComplete: (Boolean, String) -> Unit) {
         if (email.isEmpty() || password.isEmpty()) {
@@ -20,8 +53,13 @@ class Repository @Inject constructor(
                 if (task.isSuccessful) {
                     onComplete(true, "Welcome")
                 } else {
-                    val errorMessage = (task.exception as? FirebaseAuthException)?.message
-                        ?: "Email or password is incorrect"
+                    val exception = task.exception
+                    val errorMessage = when (exception) {
+                        is FirebaseAuthInvalidUserException -> "No account found with this email"
+                        is FirebaseAuthInvalidCredentialsException -> "Email or password is incorrect"
+                        is FirebaseNetworkException -> "Network error. Please check your connection"
+                        else -> exception?.message ?: "Failed to sign in"
+                    }
                     onComplete(false, errorMessage)
                 }
             }

@@ -1,12 +1,14 @@
-package com.ug.taskaya.ui.sign_in_screen
+package com.ug.taskaya.ui.sign_up_screen
 
 import com.ug.taskaya.utils.AuthState
 
-data class SignInState(
+data class SignUpState(
 
     val message : String,
     val launchedEffectKey : Boolean,
     val authState : AuthState,
+    val name: String,
     val email: String,
-    val password: String
+    val password: String,
+    val rePassword: String,
 )

@@ -12,6 +12,7 @@ import com.ug.taskaya.ui.calendar_screen.CalenderScreen
 import com.ug.taskaya.ui.design_matrials.bottomNav.BottomNavScreen
 import com.ug.taskaya.ui.design_matrials.bottomNav.BottomNavigationBar
 import com.ug.taskaya.ui.drawer.SideMenu
+import com.ug.taskaya.ui.no_internet_screen.NoInternetScreen
 import com.ug.taskaya.ui.onboarding_screen.OnboardingPager
 import com.ug.taskaya.ui.profile_screen.ProfileScreen
 import com.ug.taskaya.ui.reset_password_screen.ResetPasswordScreen
@@ -80,7 +81,7 @@ fun TaskayaApp(facebookSignInAuth: FacebookSignInAuth) {
             NavHost(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
-                startDestination = Screen.SignInScreen.route
+                startDestination = Screen.SplashScreen.route
             ) {
                 composable(Screen.SplashScreen.route) { SplashScreen(navController) }
                 composable(Screen.TasksScreen.route) { TasksScreen(navController) }
@@ -88,8 +89,9 @@ fun TaskayaApp(facebookSignInAuth: FacebookSignInAuth) {
                 composable(Screen.ProfileScreen.route) { ProfileScreen(navController) }
                 composable(Screen.OnboardingScreen.route) { OnboardingPager(navController) }
                 composable(Screen.SignInScreen.route) { SignInScreen(navController, facebookSignInAuth = facebookSignInAuth) }
-                composable(Screen.SignUpScreen.route) { SignUpScreen(navController) }
+                composable(Screen.SignUpScreen.route) { SignUpScreen(navController, facebookSignInAuth = facebookSignInAuth) }
                 composable(Screen.ResetPasswordScreen.route) { ResetPasswordScreen(navController) }
+                composable(Screen.NoInternetScreen.route){ NoInternetScreen(navController) }
             }
         }
     }
