@@ -28,7 +28,7 @@ import com.ug.taskaya.R
 @Composable
 fun CustomChips(
     modifier: Modifier = Modifier,
-    categories: List<String>
+    labels: List<String>
 ){
 
     FlowRow (
@@ -38,7 +38,7 @@ fun CustomChips(
             .wrapContentHeight()
             .fillMaxWidth()
     ){
-        categories.forEach { category ->
+        labels.forEach { category ->
 
             Column(
                 modifier = Modifier

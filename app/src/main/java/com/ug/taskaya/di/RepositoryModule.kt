@@ -1,6 +1,7 @@
 package com.ug.taskaya.di
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.ug.taskaya.data.repositories.Repository
 import dagger.Module
 import dagger.Provides
@@ -14,7 +15,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideRepository(auth: FirebaseAuth): Repository {
-        return Repository(auth)
+    fun provideRepository(firebaseAuth: FirebaseAuth, firebaseFirestore : FirebaseFirestore): Repository {
+        return Repository(firebaseAuth , firebaseFirestore)
     }
 }

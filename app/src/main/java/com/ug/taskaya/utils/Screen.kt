@@ -1,6 +1,6 @@
 package com.ug.taskaya.utils
 
-sealed class Screen (val route: String){
+sealed class    Screen (val route: String){
 
     data object SplashScreen : Screen("splash_screen")
     data object SignInScreen : Screen("signIn_screen")
@@ -12,4 +12,6 @@ sealed class Screen (val route: String){
     data object OnboardingScreen : Screen("onboarding_screen")
     data object ResetPasswordScreen : Screen("reset_password_screen")
     data object NoInternetScreen : Screen("no_internet_screen")
+    data object LabelsScreen : Screen("labels_screen")
+    data object WritingTaskScreen : Screen("writing_task_screen")
 }

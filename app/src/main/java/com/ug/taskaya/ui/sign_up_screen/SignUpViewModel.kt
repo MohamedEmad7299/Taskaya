@@ -1,7 +1,6 @@
 package com.ug.taskaya.ui.sign_up_screen
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
 import com.ug.taskaya.data.repositories.Repository
 import com.ug.taskaya.utils.AuthState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,9 +14,6 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
-
-
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val _screenState = MutableStateFlow(
 
@@ -34,12 +30,7 @@ class SignUpViewModel @Inject constructor(
 
     val screenState = _screenState.asStateFlow()
 
-    private fun checkAuthStatus(){
 
-        if (auth.currentUser == null)
-            _screenState.update { it.copy(authState =  AuthState.Unauthenticated) }
-        else _screenState.update { it.copy(authState =  AuthState.Authenticated) }
-    }
 
    private fun isSignUpReady(): Boolean{
 
@@ -76,20 +67,6 @@ class SignUpViewModel @Inject constructor(
                         message = message
                     )
                 }
-            }
-        }
-    }
-
-    fun signOut() {
-
-        _screenState.update { it.copy(authState = AuthState.Loading) }
-
-        repository.signOut {
-            _screenState.update {
-                it.copy(
-                    launchedEffectKey = !it.launchedEffectKey,
-                    authState = AuthState.Unauthenticated
-                )
             }
         }
     }

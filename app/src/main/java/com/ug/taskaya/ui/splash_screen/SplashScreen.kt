@@ -14,10 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.ug.taskaya.R
@@ -27,13 +27,12 @@ import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(
     navController : NavController,
-   // viewModel: SplashScreenViewModel = hiltViewModel()
+    viewModel: SplashScreenViewModel = hiltViewModel()
 ){
 
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(Color.White)
 
-    val context = LocalContext.current
     val scale = remember{
 
         Animatable(3f)
@@ -53,24 +52,13 @@ fun SplashScreen(
 
         delay(1000)
 
-//        val nextDestination =
-//            if (SharedPreferences.loggedEmail == null)
-//                Screen.SignInScreen.route
-//            else
-//                Screen.HomeScreen.route
+        val nextDestination =
+            if (viewModel.isSigned())
+                Screen.TasksScreen.route
+            else
+                Screen.SignInScreen.route
 
-//        if (isInternetConnected(context)){
-//
-//            navController.navigate(nextDestination){
-//                popUpTo(navController.graph.id){
-//                    inclusive = true
-//                }
-//            }
-//        }
-//
-//        else navController.navigate(Screen.NoInternetScreen.route)
-
-        navController.navigate(Screen.OnboardingScreen.route){
+        navController.navigate(nextDestination){
 
             popUpTo(navController.graph.id){
                 inclusive = true

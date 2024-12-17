@@ -12,4 +12,6 @@ val Pink40 = Color(0xFF7D5260)
 
 val Ment = Color(0xFF1A746D)
 val DarkGray = Color(0xFF777777)
+val Gold = Color(0xFFefbf04)
 val LightGreen = Color(0xFFE0F2F1)
+val OffWhite = Color(0xFFD9D9D9)

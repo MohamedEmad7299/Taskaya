@@ -1,10 +1,11 @@
-package com.ug.taskaya.ui.details_screen
+package com.ug.taskaya.ui.writing_task_screen
 
-import androidx.compose.foundation.Canvas
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,17 +15,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -34,19 +40,64 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.ug.taskaya.R
+import com.ug.taskaya.data.entities.TaskEntity
 import com.ug.taskaya.ui.composables.CustomChips
 import com.ug.taskaya.ui.composables.DetailsItem
+import com.ug.taskaya.ui.composables.PriorityPicker
+import com.ug.taskaya.ui.theme.DarkGray
+import com.ug.taskaya.ui.theme.Gold
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.Screen
 
 
 @Composable
-fun DetailsScreen(){
+fun WritingTaskScreen(
+    navController: NavController,
+    viewModel: WritingTaskViewModel = hiltViewModel()
+){
+
+    val screenState by viewModel.screenState.collectAsState()
+    val context = LocalContext.current
+    
+    if (screenState.message.isNotEmpty()){
+        LaunchedEffect(key1 = screenState.launchedEffectKey){
+            Toast.makeText(context, screenState.message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    WritingTaskContent(
+        screenState = screenState,
+        saveTask = {
+            // don't forget me :(
+        },
+        newTask = screenState.task,
+        onClickLabels = { navController.navigate(Screen.LabelsScreen.route) },
+        onChangeTaskContent = viewModel::onChangeTaskContent,
+        onClickBackArrow = { navController.popBackStack() },
+        onClickRepeatedButton = viewModel::onChangeRepetitionState,
+        onClickStarButton = viewModel::onChangeStaredState,
+        onClickDate = viewModel::onChangeTaskDueDate
+    )
+}
+
+
+@Composable
+fun WritingTaskContent(
+    screenState: WritingTaskState,
+    newTask: TaskEntity = screenState.task,
+    saveTask: () -> Unit,
+    onClickBackArrow: () -> Unit,
+    onChangeTaskContent: (String) -> Unit,
+    onClickLabels: () -> Unit,
+    onClickRepeatedButton: () -> Unit,
+    onClickDate: (String) -> Unit,
+    onClickStarButton: () -> Unit,
+){
 
     val scrollState = rememberScrollState()
-    val categories by remember { mutableStateOf(listOf("Work","Professional","Home","Bobo","Lolo","Sa8ery")) }
-
-
 
     Column(
         modifier = Modifier
@@ -61,50 +112,91 @@ fun DetailsScreen(){
             val (backArrow,category,task, divider1,
                 divider2,divider3,divider4,dueDate,
                 date,repeatTask,noOrYes,priority,color,
-                addImage,addButton) = createRefs()
+                addImage, starButton, saveButton) = createRefs()
 
+
+            Text(
+                modifier = Modifier
+                    .constrainAs(saveButton){
+                        end.linkTo(parent.end,16.dp)
+                        top.linkTo(parent.top,24.dp)
+                    }
+                    .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ){ saveTask() },
+                text = "Save",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Ment,
+                    textAlign = TextAlign.Center,
+                )
+            )
 
             IconButton(
                 modifier = Modifier.constrainAs(backArrow){
-                    top.linkTo(parent.top,12.dp)
+                    top.linkTo(parent.top,16.dp)
                     start.linkTo(parent.start) },
-                onClick = { /*TODO*/ }) {
+                onClick = onClickBackArrow) {
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = ""
                 )
             }
 
-            Text(
+            TextField(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .height(256.dp)
                     .padding(horizontal = 16.dp)
                     .constrainAs(task){
-                    top.linkTo(backArrow.bottom,32.dp)
+                        top.linkTo(backArrow.bottom)
+                    },
+                value = newTask.taskContent,
+                onValueChange = {
+                    onChangeTaskContent(it)
                 },
-                text = "What would you like to do ?",
-                style = TextStyle(
+                colors = TextFieldDefaults.colors(
+                    cursorColor = Color.Black ,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                textStyle = TextStyle(
                     fontSize = 16.sp,
                     fontFamily = FontFamily(Font(R.font.inter)),
                     fontWeight = FontWeight(400),
-                    color = Color(0xFF777777),
-                    textAlign = TextAlign.Center,
+                    color = Color.Black,
                 ),
-                textAlign = TextAlign.Start
+                placeholder = { Text(
+                    text = "What would you like to do ?",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFF777777),
+                    )
+                ) }
             )
 
             CustomChips(
                 modifier = Modifier
-                    .clickable {  }
+                    .clickable {
+                        onClickLabels()
+                    }
                     .constrainAs(category){
-                        bottom.linkTo(divider1.top,16.dp)
+                        top.linkTo(task.bottom,16.dp)
                     },
-                labels = categories)
+                labels = newTask.labels.ifEmpty { listOf("Label") })
 
 
             Divider(
                 modifier = Modifier
                     .constrainAs(divider1) {
-                        top.linkTo(task.bottom, 256.dp)
+                        top.linkTo(category.bottom, 16.dp)
                     }
                     .padding(horizontal = 8.dp)
                     .fillMaxWidth(),
@@ -126,14 +218,16 @@ fun DetailsScreen(){
                         top.linkTo(divider1.bottom, 24.dp)
                         end.linkTo(parent.end, 16.dp)
                     }
-                    .clickable { }
+                    .clickable {
+                        onClickDate(newTask.dueDate)
+                    }
                     .width(90.dp)
                     .height(30.dp)
                     .background(color = Color(0xFFD1E3E2), shape = RoundedCornerShape(size = 5.dp))
                     .padding(start = 9.dp, top = 8.dp, end = 9.dp, bottom = 7.dp)
             ){
                 Text(
-                    text = "20/8/2024",
+                    text = newTask.dueDate,
                     style = TextStyle(
                         fontSize = 14.sp,
                         lineHeight = 14.sp,
@@ -200,66 +294,60 @@ fun DetailsScreen(){
                     top.linkTo(divider4.bottom,24.dp)
                     start.linkTo(parent.start,16.dp)
                 },
-                iconId = R.drawable.image,
-                text = "Add Image")
+                iconId = R.drawable.stars,
+                text = "Is Stared")
 
-            Column(
-                Modifier
+            Button(
+                onClick = onClickRepeatedButton,
+                modifier = Modifier
                     .constrainAs(noOrYes) {
                         top.linkTo(divider2.bottom, 24.dp)
                         end.linkTo(parent.end, 16.dp)
                     }
-                    .clickable { }
                     .width(60.dp)
-                    .height(30.dp)
-                    .background(color = Color(0xFFD1E3E2), shape = RoundedCornerShape(size = 5.dp)),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
+                    .height(30.dp),
+                shape = RoundedCornerShape(5.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD1E3E2),
+                    contentColor = Color(0xFF777777)
+                ),
+                contentPadding = PaddingValues(0.dp)
+            ) {
                 Text(
-                    text = "No",
+                    text = if (newTask.isRepeated) "Yes" else "No",
                     style = TextStyle(
                         fontSize = 14.sp,
                         lineHeight = 14.sp,
                         fontFamily = FontFamily(Font(R.font.inter)),
                         fontWeight = FontWeight(400),
-                        color = Color(0xFF777777),
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Center
                     )
                 )
             }
 
-            IconButton(
+
+            PriorityPicker(
                 modifier = Modifier
                     .constrainAs(color) {
-                        top.linkTo(divider3.bottom, 16.dp)
-                        end.linkTo(parent.end, 8.dp)
-                    },
-                onClick = { /*TODO*/ }
-            ) {
-                Canvas(modifier = Modifier
-                    .size(24.dp)) {
-                    drawCircle(
-                        color = Color(0xFFD9D9D9),
-                        radius = size.minDimension / 2,
-                        center = center
-                    )
-                }
-            }
+                        top.linkTo(divider3.bottom)
+                        end.linkTo(parent.end)
+                    }
+            )
 
             IconButton(
                 modifier = Modifier
-                    .constrainAs(addButton) {
-                        top.linkTo(divider4.bottom, 16.dp)
+                    .constrainAs(starButton) {
+                        top.linkTo(divider4.bottom, 8.dp)
                         end.linkTo(parent.end, 8.dp)
                     },
-                onClick = { /*TODO*/ }
+                onClick = onClickStarButton
             ){
                 Icon(
                     modifier = Modifier.size(48.dp),
-                    painter = painterResource(id = R.drawable.baseline_add_24),
+                    painter = painterResource(id = R.drawable.star_filled),
                     contentDescription = "",
-                    tint = Ment)
+                    tint = if (newTask.isStared) Gold else DarkGray
+                )
             }
         }
     }

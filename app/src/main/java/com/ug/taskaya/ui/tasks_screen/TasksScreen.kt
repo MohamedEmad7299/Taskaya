@@ -72,5 +72,4 @@ fun TasksContent(){
             Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
         }
     }
-
 }

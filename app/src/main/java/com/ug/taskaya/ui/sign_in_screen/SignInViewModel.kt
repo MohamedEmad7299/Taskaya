@@ -31,14 +31,6 @@ class SignInViewModel @Inject constructor(
 
     val screenState = _screenState.asStateFlow()
 
-    private fun checkAuthStatus(){
-
-        if (auth.currentUser == null)
-            _screenState.update { it.copy(authState =  AuthState.Unauthenticated) }
-        else _screenState.update { it.copy(authState =  AuthState.Authenticated) }
-
-    }
-
 
     fun signIn(email: String, password: String) {
 

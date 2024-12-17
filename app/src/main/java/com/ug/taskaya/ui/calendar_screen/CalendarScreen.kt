@@ -1,17 +1,18 @@
 package com.ug.taskaya.ui.calendar_screen
 
 import android.widget.CalendarView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -29,12 +30,13 @@ fun CalenderScreen(navController: NavController){
 }
 
 
-@Preview
+
 @Composable
 fun CalendarContent(){
 
     ConstraintLayout(
         modifier = Modifier
+            .background(Color.White)
             .fillMaxSize()
     ){
         val (tryText,calendar,todayText,quote) = createRefs()

@@ -6,15 +6,52 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class Repository @Inject constructor(
-    private val auth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val db: FirebaseFirestore
 ) {
 
 
+    private val labelsCollection = db.collection("labels")
+
+    suspend fun fetchLabels(): Result<List<String>> {
+        return try {
+            val snapshot = labelsCollection.get().await()
+            val labels = snapshot.documents.mapNotNull { it.getString("name") }
+            Result.success(labels)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun addLabel(name: String): Result<Unit> {
+        return try {
+            val newLabel = hashMapOf("name" to name)
+            labelsCollection.add(newLabel).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun removeLabel(name: String): Result<Unit> {
+        return try {
+            val snapshot = labelsCollection.whereEqualTo("name", name).get().await()
+            for (document in snapshot.documents) {
+                document.reference.delete().await()
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun signOut(onComplete: () -> Unit) {
-        auth.signOut()
+        firebaseAuth.signOut()
         onComplete()
     }
 
@@ -24,7 +61,7 @@ class Repository @Inject constructor(
             return
         }
 
-        auth.createUserWithEmailAndPassword(email, password)
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onComplete(true, "Account Created Successfully")
@@ -48,7 +85,7 @@ class Repository @Inject constructor(
             return
         }
 
-        auth.signInWithEmailAndPassword(email, password)
+        firebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onComplete(true, "Welcome")
@@ -72,7 +109,7 @@ class Repository @Inject constructor(
             return
         }
 
-        auth.sendPasswordResetEmail(email)
+        firebaseAuth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onResult(Result.success(Unit))

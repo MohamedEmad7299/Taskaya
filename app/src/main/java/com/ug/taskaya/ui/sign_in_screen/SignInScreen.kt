@@ -61,20 +61,16 @@ fun SignInScreen(
         }
     }
 
-    ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
-    ){
-        SignInContent(
-            screenState = screenState,
-            signIn = viewModel::signIn,
-            onEmailChange = viewModel::onChangeEmail,
-            onPasswordChange = viewModel::onChangePassword,
-            navigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) },
-            facebookSignInAuth = facebookSignInAuth,
-            navigateToResetPasswordScreen = { navController.navigate(Screen.ResetPasswordScreen.route) },
-            onInternetError = viewModel::onInternetError
-        )
-    }
+    SignInContent(
+        screenState = screenState,
+        signIn = viewModel::signIn,
+        onEmailChange = viewModel::onChangeEmail,
+        onPasswordChange = viewModel::onChangePassword,
+        navigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) },
+        facebookSignInAuth = facebookSignInAuth,
+        navigateToResetPasswordScreen = { navController.navigate(Screen.ResetPasswordScreen.route) },
+        onInternetError = viewModel::onInternetError
+    )
 }
 
 

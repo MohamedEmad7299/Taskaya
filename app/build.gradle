@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "com.ug.taskaya"
-        minSdk 24
+        minSdk 28
         targetSdk 35
         versionCode 1
         versionName "1.0"
@@ -48,6 +48,8 @@ android {
 }
 
 dependencies {
+
+
     // Core libraries
     implementation libs.androidx.core.ktx
     implementation libs.androidx.lifecycle.runtime.ktx
@@ -67,6 +69,8 @@ dependencies {
     implementation libs.androidx.hilt.navigation.compose.v100
     implementation libs.google.googleid
     implementation libs.firebase.crashlytics.buildtools
+    implementation libs.firebase.database.ktx
+    implementation libs.firebase.firestore.ktx
 
     // Testing libraries
     testImplementation libs.junit
@@ -106,6 +110,7 @@ dependencies {
 
     // Lifecycle
     implementation libs.androidx.lifecycle.runtime.ktx.v261
+    implementation libs.androidx.lifecycle.viewmodel.ktx
 }
 
 kapt {
