@@ -3,6 +3,7 @@ package com.ug.taskaya.ui.labels_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ug.taskaya.data.repositories.Repository
+import com.ug.taskaya.ui.writing_task_screen.SharedState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +22,8 @@ class LabelsViewModel @Inject constructor(
             message = "",
             launchedEffectKey = false,
             labels = emptyList(),
-            searchInput = ""
+            searchInput = "",
+            selectedLabels = emptyList()
         )
     )
 
@@ -29,14 +31,14 @@ class LabelsViewModel @Inject constructor(
 
     init {
         fetchLabels()
+        viewModelScope.launch {
+            SharedState.sharedLabels.collect { labels ->
+                _screenState.update { it.copy(selectedLabels = labels) }
+            }
+        }
     }
 
-    fun initializeLabels(labels: List<String>){
-        _screenState.update { it.copy(labels = labels) }
-    }
-
-
-    fun fetchLabels() {
+    private fun fetchLabels() {
 
         viewModelScope.launch {
             val result = repository.fetchLabels()
@@ -53,6 +55,18 @@ class LabelsViewModel @Inject constructor(
         }
     }
 
+
+    fun changeCheckState(label: String){
+
+        _screenState.update { it.copy(
+            selectedLabels = it.selectedLabels.toMutableList().apply {
+                if (!contains(label)) add(label)
+                else remove(label)
+            }
+        ) }
+
+        SharedState.updateLabels(_screenState.value.selectedLabels)
+    }
 
     fun addLabel(name: String) {
 

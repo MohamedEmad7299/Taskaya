@@ -61,7 +61,12 @@ fun WritingTaskScreen(
 
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
-    
+
+    LaunchedEffect(Unit){
+
+        viewModel.collectSelectedLabels()
+    }
+
     if (screenState.message.isNotEmpty()){
         LaunchedEffect(key1 = screenState.launchedEffectKey){
             Toast.makeText(context, screenState.message, Toast.LENGTH_SHORT).show()

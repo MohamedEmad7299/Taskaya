@@ -48,14 +48,11 @@ class WritingTaskViewModel @Inject constructor(
         ) }
     }
 
-    fun onChangeTaskLabels(
-        labels: List<String>
-    ){
-        _screenState.update { it.copy(
-            task = it.task.copy(
-                labels = labels
-            )
-        ) }
+    suspend fun collectSelectedLabels(){
+
+        SharedState.sharedLabels.collect { labels ->
+            _screenState.update { it.copy(task = it.task.copy(labels = labels)) }
+        }
     }
 
     fun onChangeTaskDueDate(

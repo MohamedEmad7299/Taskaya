@@ -27,7 +27,9 @@
     import com.ug.taskaya.utils.isInternetConnected
     
     @Composable
-    fun TaskayaApp(facebookSignInAuth: FacebookSignInAuth) {
+    fun TaskayaApp(
+        facebookSignInAuth: FacebookSignInAuth
+    ) {
     
         val navController = rememberNavController()
         val backStackEntry = navController.currentBackStackEntryAsState()

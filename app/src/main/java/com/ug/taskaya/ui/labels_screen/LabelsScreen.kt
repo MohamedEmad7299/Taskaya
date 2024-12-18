@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
+import com.ug.taskaya.ui.theme.Ment
 
 @Composable
 fun LabelsScreen(
@@ -61,7 +63,8 @@ fun LabelsScreen(
         onSearchInputChange = viewModel::onChangeSearchInput,
         onClickBackButton = {
             navController.popBackStack()
-        }
+        },
+        onCheckedChange = viewModel::changeCheckState
     )
 }
 
@@ -73,7 +76,8 @@ fun LabelsContent(
     labels: List<String>,
     onClickBackButton: () -> Unit,
     onSearchInputChange: (String) -> Unit,
-    addLabel: (String) -> Unit
+    addLabel: (String) -> Unit,
+    onCheckedChange : (String) -> Unit,
 ) {
 
     val scrollState = rememberScrollState()
@@ -181,7 +185,9 @@ fun LabelsContent(
                     modifier = Modifier.constrainAs(labelList) {
                         top.linkTo(addButton.bottom)
                     },
-                    labels = labels.filter { it.contains(screenState.searchInput, ignoreCase = true) }
+                    labels = labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
+                    selectedLabels = screenState.selectedLabels,
+                    onCheckedChange = onCheckedChange
                 )
             }
 
@@ -191,9 +197,10 @@ fun LabelsContent(
                     modifier = Modifier.constrainAs(labelList) {
                         top.linkTo(backArrow.bottom, 24.dp)
                     },
-                    labels = labels.filter { it.contains(screenState.searchInput, ignoreCase = true) }
+                    labels = labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
+                    selectedLabels = screenState.selectedLabels,
+                    onCheckedChange = onCheckedChange
                 )
-
             }
         }
     }
@@ -202,7 +209,9 @@ fun LabelsContent(
 @Composable
 fun LabelsList(
     modifier: Modifier = Modifier,
-    labels: List<String>
+    labels: List<String>,
+    selectedLabels: List<String>,
+    onCheckedChange: (String) -> Unit,
 ){
 
     Column(
@@ -255,8 +264,11 @@ fun LabelsList(
                             top.linkTo(parent.top)
                             end.linkTo(parent.end)
                         },
-                    checked = false,
-                    onCheckedChange = { }
+                    checked = selectedLabels.contains(label),
+                    onCheckedChange = { onCheckedChange(label) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Ment
+                    )
                 )
             }
         }

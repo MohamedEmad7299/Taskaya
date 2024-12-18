@@ -6,4 +6,5 @@ data class LabelsState(
     val labels: List<String>,
     val message : String,
     val launchedEffectKey : Boolean,
+    val selectedLabels: List<String>
 )
