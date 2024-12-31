@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material.TabRowDefaults.Divider
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -27,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,16 +78,15 @@ fun WritingTaskScreen(
 
     WritingTaskContent(
         screenState = screenState,
-        saveTask = {
-            // don't forget me :(
-        },
+        saveTask = { viewModel.saveTask(navController) },
         newTask = screenState.task,
         onClickLabels = { navController.navigate(Screen.LabelsScreen.route) },
         onChangeTaskContent = viewModel::onChangeTaskContent,
         onClickBackArrow = { navController.popBackStack() },
         onClickRepeatedButton = viewModel::onChangeRepetitionState,
         onClickStarButton = viewModel::onChangeStaredState,
-        onClickDate = viewModel::onChangeTaskDueDate
+        onClickDate = viewModel::onChangeTaskDueDate,
+        updatePriority = viewModel::updatePriority
     )
 }
 
@@ -100,9 +102,34 @@ fun WritingTaskContent(
     onClickRepeatedButton: () -> Unit,
     onClickDate: (String) -> Unit,
     onClickStarButton: () -> Unit,
+    updatePriority: (Color) -> Unit
 ){
 
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
+
+    val showDatePicker = remember { mutableStateOf(false) }
+
+    if (showDatePicker.value) {
+        val datePicker = android.app.DatePickerDialog(
+            context,
+            { _, year, month, day ->
+
+                val selectedDate = "$day/${month + 1}/$year"
+                onClickDate(selectedDate)
+                showDatePicker.value = false
+            },
+            newTask.dueDate.split("/").getOrNull(2)?.toIntOrNull() ?: 2024,
+            newTask.dueDate.split("/").getOrNull(1)?.toIntOrNull()?.minus(1) ?: 0,
+            newTask.dueDate.split("/").getOrNull(0)?.toIntOrNull() ?: 1
+        )
+
+        datePicker.datePicker.minDate = java.util.Calendar.getInstance().timeInMillis
+
+        datePicker.show()
+    }
+
 
     Column(
         modifier = Modifier
@@ -120,25 +147,40 @@ fun WritingTaskContent(
                 addImage, starButton, saveButton) = createRefs()
 
 
-            Text(
-                modifier = Modifier
-                    .constrainAs(saveButton){
-                        end.linkTo(parent.end,16.dp)
-                        top.linkTo(parent.top,24.dp)
-                    }
-                    .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ){ saveTask() },
-                text = "Save",
-                style = TextStyle(
-                    fontSize = 20.sp,
-                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
+            if (screenState.savingState == SavingState.Loading)
+
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .constrainAs(saveButton){
+                            end.linkTo(parent.end,16.dp)
+                            top.linkTo(parent.top,24.dp)
+                        }
+                        .size(32.dp),
                     color = Ment,
-                    textAlign = TextAlign.Center,
+                    strokeWidth = 5.dp
                 )
-            )
+
+            else
+
+                Text(
+                    modifier = Modifier
+                        .constrainAs(saveButton){
+                            end.linkTo(parent.end,16.dp)
+                            top.linkTo(parent.top,24.dp)
+                        }
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ){ saveTask() },
+                    text = "Save",
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Ment,
+                        textAlign = TextAlign.Center,
+                    )
+                )
 
             IconButton(
                 modifier = Modifier.constrainAs(backArrow){
@@ -198,16 +240,14 @@ fun WritingTaskContent(
                 labels = newTask.labels.ifEmpty { listOf("Label") })
 
 
-            Divider(
-                modifier = Modifier
-                    .constrainAs(divider1) {
-                        top.linkTo(category.bottom, 16.dp)
-                    }
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                color = Color.Black,
-                thickness = 0.5.dp
-            )
+            HorizontalDivider(modifier = Modifier
+                .constrainAs(divider1) {
+                    top.linkTo(category.bottom, 16.dp)
+                }
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+                thickness = 0.5.dp,
+                color = Color.Black)
 
             DetailsItem(
                 modifier = Modifier.constrainAs(dueDate){
@@ -224,9 +264,9 @@ fun WritingTaskContent(
                         end.linkTo(parent.end, 16.dp)
                     }
                     .clickable {
-                        onClickDate(newTask.dueDate)
+                        showDatePicker.value = true
                     }
-                    .width(90.dp)
+                    .wrapContentWidth()
                     .height(30.dp)
                     .background(color = Color(0xFFD1E3E2), shape = RoundedCornerShape(size = 5.dp))
                     .padding(start = 9.dp, top = 8.dp, end = 9.dp, bottom = 7.dp)
@@ -244,16 +284,14 @@ fun WritingTaskContent(
                 )
             }
 
-            Divider(
-                modifier = Modifier
-                    .constrainAs(divider2) {
-                        top.linkTo(dueDate.bottom, 24.dp)
-                    }
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                color = Color.Black,
-                thickness = 0.5.dp
-            )
+            HorizontalDivider(modifier = Modifier
+                .constrainAs(divider2) {
+                    top.linkTo(dueDate.bottom, 24.dp)
+                }
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+                thickness = 0.5.dp,
+                color = Color.Black)
 
             DetailsItem(
                 modifier = Modifier.constrainAs(repeatTask){
@@ -263,16 +301,14 @@ fun WritingTaskContent(
                 iconId = R.drawable.repeat,
                 text = "Repeat Task")
 
-            Divider(
-                modifier = Modifier
-                    .constrainAs(divider3) {
-                        top.linkTo(repeatTask.bottom, 24.dp)
-                    }
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                color = Color.Black,
-                thickness = 0.5.dp
-            )
+            HorizontalDivider(modifier = Modifier
+                .constrainAs(divider3) {
+                    top.linkTo(repeatTask.bottom, 24.dp)
+                }
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+                thickness = 0.5.dp,
+                color = Color.Black)
 
             DetailsItem(
                 modifier = Modifier.constrainAs(priority){
@@ -283,16 +319,14 @@ fun WritingTaskContent(
                 text = "Priority")
 
 
-            Divider(
-                modifier = Modifier
-                    .constrainAs(divider4) {
-                        top.linkTo(priority.bottom, 24.dp)
-                    }
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                color = Color.Black,
-                thickness = 0.5.dp
-            )
+            HorizontalDivider(modifier = Modifier
+                .constrainAs(divider4) {
+                    top.linkTo(priority.bottom, 24.dp)
+                }
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+                thickness = 0.5.dp,
+                color = Color.Black)
 
             DetailsItem(
                 modifier = Modifier.constrainAs(addImage){
@@ -336,7 +370,8 @@ fun WritingTaskContent(
                     .constrainAs(color) {
                         top.linkTo(divider3.bottom)
                         end.linkTo(parent.end)
-                    }
+                    },
+                updatePriority = updatePriority
             )
 
             IconButton(

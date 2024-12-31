@@ -19,11 +19,14 @@ import com.ug.taskaya.ui.theme.OffWhite
 
 @Composable
 fun PriorityPicker(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    updatePriority: (Color) -> Unit
 ){
 
     var clicked by remember { mutableStateOf(false) }
-    var currentColor by remember { mutableStateOf(Color(0xFFD9D9D9)) }
+    var currentColor by remember { mutableStateOf(OffWhite) }
+
+    val colors = listOf(Color.Red, Color.Yellow, OffWhite)
 
     if (!clicked)
 
@@ -51,46 +54,22 @@ fun PriorityPicker(
             verticalAlignment = Alignment.CenterVertically
         ){
 
-            Canvas(modifier = Modifier
-                .clickable {
-                    clicked = false
-                    currentColor = Color.Red
-                }
-                .padding(end = 16.dp)
-                .size(24.dp)) {
-                drawCircle(
-                    color = Color.Red,
-                    radius = size.minDimension / 2,
-                    center = center
-                )
-            }
+            colors.forEach { color ->
 
-            Canvas(modifier = Modifier
-                .clickable {
-                    clicked = false
-                    currentColor = Color.Yellow
+                Canvas(modifier = Modifier
+                    .clickable {
+                        clicked = false
+                        currentColor = color
+                        updatePriority(color)
+                    }
+                    .padding(end = 16.dp)
+                    .size(24.dp)) {
+                    drawCircle(
+                        color = color,
+                        radius = size.minDimension / 2,
+                        center = center
+                    )
                 }
-                .padding(end = 16.dp)
-                .size(24.dp)) {
-                drawCircle(
-                    color = Color.Yellow,
-                    radius = size.minDimension / 2,
-                    center = center
-                )
-            }
-
-            Canvas(modifier = Modifier
-                .clickable {
-                    clicked = false
-                    currentColor = OffWhite
-                }
-                .padding(end = 16.dp)
-                .size(24.dp)) {
-                drawCircle(
-                    color = OffWhite,
-                    radius = size.minDimension / 2,
-                    center = center
-                )
             }
         }
 }

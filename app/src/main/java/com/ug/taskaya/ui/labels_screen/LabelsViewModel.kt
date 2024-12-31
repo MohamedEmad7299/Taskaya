@@ -3,13 +3,14 @@ package com.ug.taskaya.ui.labels_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ug.taskaya.data.repositories.Repository
-import com.ug.taskaya.ui.writing_task_screen.SharedState
+import com.ug.taskaya.utils.SharedState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @HiltViewModel
 class LabelsViewModel @Inject constructor(
@@ -29,32 +30,23 @@ class LabelsViewModel @Inject constructor(
 
     val screenState = _screenState.asStateFlow()
 
+
     init {
         fetchLabels()
-        viewModelScope.launch {
-            SharedState.sharedLabels.collect { labels ->
-                _screenState.update { it.copy(selectedLabels = labels) }
-            }
-        }
     }
 
     private fun fetchLabels() {
 
         viewModelScope.launch {
-            val result = repository.fetchLabels()
-            result.onSuccess { labels ->
-                _screenState.update { it.copy(labels = labels) }
-            }.onFailure { error ->
-                _screenState.update {
-                    it.copy(
-                        message = error.localizedMessage ?: "Failed to fetch labels",
-                        launchedEffectKey = !it.launchedEffectKey
-                    )
+
+            repository.listenToLabels{ result ->
+                result.onSuccess { labels ->
+                    _screenState.update { it.copy(labels = labels) }
+                    SharedState.updateAllLabels(labels)
                 }
             }
         }
     }
-
 
     fun changeCheckState(label: String){
 
@@ -65,19 +57,23 @@ class LabelsViewModel @Inject constructor(
             }
         ) }
 
-        SharedState.updateLabels(_screenState.value.selectedLabels)
+        SharedState.updateSelectedLabels(_screenState.value.selectedLabels)
     }
 
-    fun addLabel(name: String) {
+    fun addLabel(labelName: String) {
+
+        _screenState.update {
+            it.copy(labels = it.labels+labelName)
+        }
 
         viewModelScope.launch {
-            val result = repository.addLabel(name)
-            result.onSuccess {
-                fetchLabels()
-            }.onFailure { error ->
+
+            val result = repository.addLabel(labelName)
+
+            result.onFailure { error ->
                 _screenState.update {
                     it.copy(
-                        message = error.localizedMessage ?: "Failed to add label",
+                        message = error.localizedMessage ?: "Something went wrong",
                         launchedEffectKey = !it.launchedEffectKey
                     )
                 }
@@ -90,22 +86,5 @@ class LabelsViewModel @Inject constructor(
     fun onChangeSearchInput(searchInput: String){
 
         _screenState.update { it.copy(searchInput = searchInput) }
-    }
-
-    fun removeLabel(name: String) {
-
-        viewModelScope.launch {
-            val result = repository.removeLabel(name)
-            result.onSuccess {
-                fetchLabels() // Refresh the label list after removing
-            }.onFailure { error ->
-                _screenState.update {
-                    it.copy(
-                        message = error.localizedMessage ?: "Failed to remove label",
-                        launchedEffectKey = !it.launchedEffectKey
-                    )
-                }
-            }
-        }
     }
 }

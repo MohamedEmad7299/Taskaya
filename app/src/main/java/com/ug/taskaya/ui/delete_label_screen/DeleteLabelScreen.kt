@@ -1,4 +1,4 @@
-package com.ug.taskaya.ui.labels_screen
+package com.ug.taskaya.ui.delete_label_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -40,15 +38,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.SharedState
+
 
 @Composable
-fun LabelsScreen(
+fun DeleteLabelsScreen(
     navController: NavController,
-    viewModel: LabelsViewModel = hiltViewModel()
+    viewModel: DeleteLabelsViewModel = hiltViewModel()
 ){
 
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
+    val labels by SharedState.allLabels.collectAsState()
+
+    LaunchedEffect(Unit){ viewModel.updateLabels(labels) }
 
     if (screenState.message.isNotEmpty()){
         LaunchedEffect(key1 = screenState.launchedEffectKey){
@@ -56,29 +59,25 @@ fun LabelsScreen(
         }
     }
 
-    LabelsContent(
+    DeleteLabelsContent(
         screenState = screenState,
-        labels = screenState.labels,
-        addLabel = viewModel::addLabel,
+        onClickDelete = viewModel::removeLabel,
+        onClickBackIcon = { navController.popBackStack() },
         onSearchInputChange = viewModel::onChangeSearchInput,
-        onClickBackButton = {
-            navController.popBackStack()
-        },
-        onCheckedChange = viewModel::changeCheckState
+        addLabel = viewModel::addLabel
     )
 }
 
 
 
 @Composable
-fun LabelsContent(
-    screenState: LabelsState,
-    labels: List<String>,
-    onClickBackButton: () -> Unit,
-    onSearchInputChange: (String) -> Unit,
+fun DeleteLabelsContent(
+    screenState: DeleteLabelsState,
+    onClickBackIcon: () -> Unit,
+    onClickDelete: (String) -> Unit,
     addLabel: (String) -> Unit,
-    onCheckedChange : (String) -> Unit,
-) {
+    onSearchInputChange: (String) -> Unit,
+){
 
     val scrollState = rememberScrollState()
 
@@ -91,15 +90,15 @@ fun LabelsContent(
         ConstraintLayout(
             Modifier.fillMaxSize()
         ) {
+            val (backArrow, searchBar, labelList, addLabelButton) = createRefs()
 
-            val (backArrow,labelList,addButton,searchBar) = createRefs()
 
             IconButton(
                 modifier = Modifier.constrainAs(backArrow) {
-                    top.linkTo(parent.top, 16.dp)
+                    top.linkTo(parent.top, 12.dp)
                     start.linkTo(parent.start)
                 },
-                onClick = onClickBackButton) {
+                onClick = onClickBackIcon) {
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = ""
@@ -134,7 +133,7 @@ fun LabelsContent(
                     color = Color.Black,
                 ),
                 placeholder = { Text(
-                    text = "Enter label name",
+                    text = "Enter new label name",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontFamily = FontFamily(Font(R.font.inter)),
@@ -144,8 +143,9 @@ fun LabelsContent(
                 ) }
             )
 
+
             if (screenState.searchInput.isNotBlank() &&
-                labels.none { it.equals(screenState.searchInput, ignoreCase = true) }) {
+                screenState.labels.none { it.equals(screenState.searchInput, ignoreCase = true) }) {
 
                 Row(
                     modifier = Modifier
@@ -157,7 +157,7 @@ fun LabelsContent(
                         }
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 24.dp)
-                        .constrainAs(addButton) {
+                        .constrainAs(addLabelButton) {
                             top.linkTo(backArrow.bottom, 24.dp)
                         },
                     verticalAlignment = Alignment.CenterVertically
@@ -181,43 +181,42 @@ fun LabelsContent(
                     )
                 }
 
-                LabelsList(
+                LabelsWithDeleteIcon(
                     modifier = Modifier.constrainAs(labelList) {
-                        top.linkTo(addButton.bottom)
+                        top.linkTo(addLabelButton.bottom)
                     },
-                    labels = labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
-                    selectedLabels = screenState.selectedLabels,
-                    onCheckedChange = onCheckedChange
+                    labels = screenState.labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
+                    onClickDelete = onClickDelete
                 )
             }
 
             else {
 
-                LabelsList(
+                LabelsWithDeleteIcon(
                     modifier = Modifier.constrainAs(labelList) {
                         top.linkTo(backArrow.bottom, 24.dp)
                     },
-                    labels = labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
-                    selectedLabels = screenState.selectedLabels,
-                    onCheckedChange = onCheckedChange
+                    labels = screenState.labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
+                    onClickDelete = onClickDelete
                 )
             }
         }
     }
 }
 
+
 @Composable
-fun LabelsList(
+fun LabelsWithDeleteIcon(
     modifier: Modifier = Modifier,
     labels: List<String>,
-    selectedLabels: List<String>,
-    onCheckedChange: (String) -> Unit,
+    onClickDelete: (String) -> Unit
 ){
 
     Column(
         modifier = modifier
             .background(Color.White),
     ){
+
         labels.forEach { label ->
 
             ConstraintLayout(
@@ -226,7 +225,7 @@ fun LabelsList(
                     .padding(horizontal =  16.dp , vertical = 8.dp)
             ) {
 
-                val (labelIcon,labelName,checkBox) = createRefs()
+                val (labelIcon,labelName,deleteIcon) = createRefs()
 
                 Icon(
                     modifier = Modifier
@@ -257,19 +256,21 @@ fun LabelsList(
                     )
                 )
 
-                Checkbox(
+                IconButton(
                     modifier = Modifier
-                        .constrainAs(checkBox){
+                        .constrainAs(deleteIcon) {
                             bottom.linkTo(parent.bottom)
                             top.linkTo(parent.top)
                             end.linkTo(parent.end)
                         },
-                    checked = selectedLabels.contains(label),
-                    onCheckedChange = { onCheckedChange(label) },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Ment
+                    onClick = { onClickDelete(label) }
+                ){
+                    Icon(
+                        painter = painterResource(R.drawable.delete_icon),
+                        contentDescription = "",
+                        tint = Ment
                     )
-                )
+                }
             }
         }
     }

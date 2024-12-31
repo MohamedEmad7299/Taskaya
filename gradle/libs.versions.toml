@@ -13,6 +13,7 @@ facebookFacebookAndroidSdk = "4.5.0"
 facebookLogin = "latest.release"
 firebaseBom = "33.5.1"
 foundation = "1.7.5"
+googleFirebaseFirestoreKtx = "24.4.0"
 hiltAndroid = "2.51.1"
 hiltAndroidCompiler = "2.48"
 hiltAndroidVersion = "2.51.1"
@@ -35,6 +36,7 @@ navigationComposeVersion = "2.8.3"
 navigationRuntimeKtx = "2.8.3"
 constraintlayout = "2.2.0"
 navigationCompose = "2.8.3"
+playServicesAuth = "20.7.0"
 someGoogleid = "1.0.0"
 ui = "1.7.5"
 googleGmsGoogleServices = "4.4.2"
@@ -67,6 +69,7 @@ facebook-android-sdk-vlatestrelease = { module = "com.facebook.android:facebook-
 facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebookLogin" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
+google-firebase-firestore-ktx-v2440 = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "googleFirebaseFirestoreKtx" }
 halilozercan-compose-calendar = { module = "io.github.halilozercan:compose-calendar", version.ref = "composeCalendarVersion" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
@@ -90,6 +93,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+play-services-auth-v2070 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 some-googleid = { module = "com.google:some-googleid", version.ref = "someGoogleid" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }

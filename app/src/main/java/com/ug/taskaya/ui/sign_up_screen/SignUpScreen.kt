@@ -37,11 +37,11 @@ import com.ug.taskaya.ui.composables.ButtonTaskaya
 import com.ug.taskaya.ui.composables.OutlinedButtonTaskaya
 import com.ug.taskaya.ui.composables.OutlinedPasswordFieldTaskaya
 import com.ug.taskaya.ui.composables.OutlinedTextFieldTaskaya
-import com.ug.taskaya.ui.sign_in_screen.FacebookSignInAuth
-import com.ug.taskaya.ui.sign_in_screen.GoogleSignInAuth
+import com.ug.taskaya.data.repositories.FacebookSignInAuth
+import com.ug.taskaya.data.repositories.GoogleSignInAuth
 import com.ug.taskaya.ui.theme.Ment
 import com.ug.taskaya.utils.AuthState
-import com.ug.taskaya.utils.isInternetConnected
+import com.ug.taskaya.utils.Screen
 import kotlinx.coroutines.launch
 
 
@@ -52,10 +52,10 @@ fun SignUpScreen(
     facebookSignInAuth: FacebookSignInAuth
 ){
 
-
     val screenState by viewModel.screenState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
+    val googleSignInAuth = GoogleSignInAuth(context)
 
     if (screenState.message.isNotEmpty()){
         LaunchedEffect(key1 = screenState.launchedEffectKey){
@@ -68,36 +68,55 @@ fun SignUpScreen(
     ){
         SignUpContent(
             screenState = screenState,
-            facebookSignInAuth = facebookSignInAuth,
+            signUpWithFacebook = {
+
+                facebookSignInAuth.signInWithFacebook(
+                    activity = context as Activity,
+                    onSuccess = {
+                        coroutineScope.launch {
+                            if (viewModel.addNewUserToFireStore()) viewModel.navigateTo(navController,Screen.TasksScreen.route,true)
+                            else Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+            },
             onEmailChange = viewModel::onChangeEmail,
             onPasswordChange = viewModel::onChangePassword,
             onRePasswordChange = viewModel::onChangeRePassword,
             onClickLogin = { navController.popBackStack() },
-            signUp = { viewModel.signUp(screenState.email,screenState.password) },
+            signUp = { viewModel.signUp(screenState.email,
+                screenState.password
+                , { viewModel.navigateTo(navController, Screen.TasksScreen.route, true) }) },
             onNameChange = viewModel::onChangeName,
-            onInternetError = viewModel::onInternetError
+            signUpWithGoogle = {
+
+                coroutineScope.launch {
+
+                    googleSignInAuth.signIn {
+
+                        launch {
+                            if (viewModel.addNewUserToFireStore()) viewModel.navigateTo(navController,Screen.TasksScreen.route,true)
+                            else Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
         )
     }
 }
 
-
-
 @Composable
 fun SignUpContent(
-    onInternetError: () -> Unit,
     screenState: SignUpState,
     onEmailChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRePasswordChange: (String) -> Unit,
     signUp: () -> Unit,
-    facebookSignInAuth: FacebookSignInAuth,
-    onClickLogin: () -> Unit
+    onClickLogin: () -> Unit,
+    signUpWithGoogle: () -> Unit,
+    signUpWithFacebook: () -> Unit
 ) {
-
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val googleSignInAuth = GoogleSignInAuth(context)
 
     ConstraintLayout(
         modifier = Modifier
@@ -195,16 +214,7 @@ fun SignUpContent(
                 .constrainAs(googleButton) {
                     top.linkTo(orText.bottom, 16.dp)
                 },
-            onClick = {
-
-                if (isInternetConnected(context))
-                    coroutineScope.launch {
-
-                        googleSignInAuth.signIn()
-                    }
-                else
-                    onInternetError()
-            },
+            onClick = signUpWithGoogle,
             label = "Continue With Google",
             iconId = R.drawable.google
         )
@@ -214,21 +224,7 @@ fun SignUpContent(
                 .constrainAs(faceButton){
                     top.linkTo(googleButton.bottom,16.dp)
                 },
-            onClick = {
-                coroutineScope.launch {
-                    facebookSignInAuth.registerFacebookCallback(
-                        onSuccess = { token ->
-                            facebookSignInAuth.handleFacebookAccessToken(token) { _ , message ->
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        onError = { error ->
-                            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                    facebookSignInAuth.login(context as Activity)
-                }
-            }
+            onClick = signUpWithFacebook
             ,
             label = "Continue With Facebook",
             iconId = R.drawable.face

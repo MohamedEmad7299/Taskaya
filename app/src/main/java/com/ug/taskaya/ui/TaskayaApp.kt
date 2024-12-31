@@ -9,18 +9,21 @@
     import androidx.compose.foundation.layout.padding
     import androidx.compose.ui.Modifier
     import com.ug.taskaya.ui.calendar_screen.CalenderScreen
+    import com.ug.taskaya.ui.delete_label_screen.DeleteLabelsScreen
     import com.ug.taskaya.ui.design_matrials.bottomNav.BottomNavScreen
     import com.ug.taskaya.ui.design_matrials.bottomNav.BottomNavigationBar
-    import com.ug.taskaya.ui.drawer.SideMenu
+    import com.ug.taskaya.ui.drawer.DrawerScreen
     import com.ug.taskaya.ui.labels_screen.LabelsScreen
     import com.ug.taskaya.ui.no_internet_screen.NoInternetScreen
     import com.ug.taskaya.ui.onboarding_screen.OnboardingPager
     import com.ug.taskaya.ui.profile_screen.ProfileScreen
     import com.ug.taskaya.ui.reset_password_screen.ResetPasswordScreen
-    import com.ug.taskaya.ui.sign_in_screen.FacebookSignInAuth
+    import com.ug.taskaya.ui.settings_screen.SettingsScreen
+    import com.ug.taskaya.data.repositories.FacebookSignInAuth
     import com.ug.taskaya.ui.sign_in_screen.SignInScreen
     import com.ug.taskaya.ui.sign_up_screen.SignUpScreen
     import com.ug.taskaya.ui.splash_screen.SplashScreen
+    import com.ug.taskaya.ui.stared_tasks_screen.StaredTasksScreen
     import com.ug.taskaya.ui.tasks_screen.TasksScreen
     import com.ug.taskaya.ui.writing_task_screen.WritingTaskScreen
     import com.ug.taskaya.utils.Screen
@@ -53,9 +56,9 @@
             drawerState = drawerState,
             drawerContent = {
     
-                SideMenu()
+                DrawerScreen(navController)
             }
-        ) {
+        ){
     
             Scaffold(
     
@@ -80,13 +83,14 @@
                         )
                     }
                 }
-            ) { innerPadding  ->
+
+            ){ innerPadding  ->
     
                 NavHost(
                     modifier = Modifier.padding(innerPadding),
                     navController = navController,
-                    startDestination = Screen.WritingTaskScreen.route
-                ) {
+                    startDestination = Screen.SplashScreen.route
+                ){
                     composable(Screen.SplashScreen.route) { SplashScreen(navController) }
                     composable(Screen.TasksScreen.route) { TasksScreen(navController) }
                     composable(Screen.CalenderScreen.route) { CalenderScreen(navController) }
@@ -98,7 +102,11 @@
                     composable(Screen.NoInternetScreen.route){ NoInternetScreen(navController) }
                     composable(Screen.WritingTaskScreen.route){ WritingTaskScreen(navController) }
                     composable(Screen.LabelsScreen.route){ LabelsScreen(navController) }
-
+                    composable(Screen.TasksScreen.route){ TasksScreen(navController) }
+                    composable(Screen.DrawerScreen.route){ DrawerScreen(navController) }
+                    composable(Screen.SettingsScreen.route){ SettingsScreen(navController) }
+                    composable(Screen.DeleteLabelsScreen.route){ DeleteLabelsScreen(navController) }
+                    composable(Screen.StaredTasksScreen.route){ StaredTasksScreen(navController) }
                 }
             }
         }

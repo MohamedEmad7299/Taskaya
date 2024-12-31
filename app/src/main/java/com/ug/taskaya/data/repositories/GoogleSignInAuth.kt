@@ -1,7 +1,7 @@
-package com.ug.taskaya.ui.sign_in_screen
+package com.ug.taskaya.data.repositories
 
 import android.content.Context
-import androidx.credentials.ClearCredentialStateRequest
+import android.widget.Toast
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -13,39 +13,46 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
 
-class GoogleSignInAuth(
+class GoogleSignInAuth @Inject constructor (
     private val context: Context
 ){
     private val TAG = "YOGE7299"
     private val credentialManager = CredentialManager.create(context)
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    fun isSignedIn(): Boolean{
-        if (firebaseAuth.currentUser != null){
-            println(TAG + "already signed in")
-            return true
-        } else return false
-    }
 
-    suspend fun signIn(): Boolean{
+    suspend fun signIn( onSuccess: () -> Unit) {
 
         try {
 
             val request = buildCredentialRequest()
-            return handelSignIn(request)
 
-        } catch (e: Exception){
+            val success = handleSignIn(request)
+
+            val message = if (success) {
+                onSuccess()
+                "Sign-in successful! Welcome!"
+            } else {
+                "Sign-in failed. Please try again."
+            }
+
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+        } catch (e: Exception) {
             e.printStackTrace()
-            if (e is CancellationException) throw e
 
-            println(TAG + "signIn error: ${e.message}")
-            return false
+            val errorMessage =
+                if (e is CancellationException) "Something went wrong"
+                else "Login cancelled"
+
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         }
     }
 
-    private suspend fun handelSignIn(request: GetCredentialResponse): Boolean{
+    private suspend fun handleSignIn(request: GetCredentialResponse): Boolean{
 
         val credential = request.credential
 
@@ -57,10 +64,6 @@ class GoogleSignInAuth(
             try {
 
                 val tokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-
-                println(TAG +"name: ${tokenCredential.displayName}")
-                println(TAG +"email: ${tokenCredential.id}")
-                println(TAG +"image: ${tokenCredential.profilePictureUri}")
 
                 val authCredential = GoogleAuthProvider.getCredential(
                     tokenCredential.idToken, null
@@ -96,12 +99,5 @@ class GoogleSignInAuth(
             request = request,
             context = context
         )
-    }
-
-    suspend fun signOut(){
-        credentialManager.clearCredentialState(
-            ClearCredentialStateRequest()
-        )
-        firebaseAuth.signOut()
     }
 }

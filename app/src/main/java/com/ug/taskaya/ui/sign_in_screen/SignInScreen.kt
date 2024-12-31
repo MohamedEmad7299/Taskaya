@@ -34,6 +34,8 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
+import com.ug.taskaya.data.repositories.FacebookSignInAuth
+import com.ug.taskaya.data.repositories.GoogleSignInAuth
 import com.ug.taskaya.ui.composables.ButtonTaskaya
 import com.ug.taskaya.ui.composables.OutlinedButtonTaskaya
 import com.ug.taskaya.ui.composables.OutlinedPasswordFieldTaskaya
@@ -41,7 +43,6 @@ import com.ug.taskaya.ui.composables.OutlinedTextFieldTaskaya
 import com.ug.taskaya.ui.theme.Ment
 import com.ug.taskaya.utils.AuthState
 import com.ug.taskaya.utils.Screen
-import com.ug.taskaya.utils.isInternetConnected
 import kotlinx.coroutines.launch
 
 @Composable
@@ -53,9 +54,11 @@ fun SignInScreen(
 
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
-
+    val googleSignInAuth = GoogleSignInAuth(context)
+    val coroutineScope = rememberCoroutineScope()
 
     if (screenState.message.isNotEmpty()){
+
         LaunchedEffect(key1 = screenState.launchedEffectKey){
             Toast.makeText(context, screenState.message, Toast.LENGTH_SHORT).show()
         }
@@ -63,13 +66,38 @@ fun SignInScreen(
 
     SignInContent(
         screenState = screenState,
-        signIn = viewModel::signIn,
+        signIn = {
+            viewModel.signIn(
+                email = screenState.email,
+                password = screenState.password,
+                navController = navController
+            )
+        },
         onEmailChange = viewModel::onChangeEmail,
         onPasswordChange = viewModel::onChangePassword,
-        navigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) },
-        facebookSignInAuth = facebookSignInAuth,
-        navigateToResetPasswordScreen = { navController.navigate(Screen.ResetPasswordScreen.route) },
-        onInternetError = viewModel::onInternetError
+        navigateToSignUp = { viewModel.navigateTo(navController, Screen.SignUpScreen.route) },
+        signInWithFacebook = {
+            coroutineScope.launch {
+                facebookSignInAuth.signInWithFacebook(
+                    activity = context as Activity,
+                    onSuccess = {
+                        launch { viewModel.addNewUserToFireStore() }
+                        viewModel.navigateTo(navController,Screen.TasksScreen.route,true)
+                    }
+                )
+            }
+        },
+        navigateToResetPasswordScreen = { viewModel.navigateTo(navController, Screen.ResetPasswordScreen.route) },
+        signInWithGoogle = {
+            coroutineScope.launch {
+                googleSignInAuth.signIn {
+                    launch {
+                        viewModel.addNewUserToFireStore()
+                    }
+                    viewModel.navigateTo(navController,Screen.TasksScreen.route,true)
+                }
+            }
+        }
     )
 }
 
@@ -77,20 +105,15 @@ fun SignInScreen(
 
 @Composable
 fun SignInContent(
-    onInternetError: () -> Unit,
     screenState: SignInState,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    signIn: (String, String) -> Unit,
+    signIn: () -> Unit,
     navigateToSignUp: () -> Unit,
-    facebookSignInAuth: FacebookSignInAuth,
-    navigateToResetPasswordScreen: () -> Unit
+    signInWithFacebook: () -> Unit,
+    navigateToResetPasswordScreen: () -> Unit,
+    signInWithGoogle: () -> Unit
 ){
-
-
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val googleSignInAuth = GoogleSignInAuth(context)
 
     ConstraintLayout(
         modifier = Modifier
@@ -165,9 +188,7 @@ fun SignInContent(
             modifier = Modifier.constrainAs(loginButton) {
                 top.linkTo(forgetText.bottom, 32.dp)
             },
-            onClick = {
-                signIn(screenState.email,screenState.password)
-            },
+            onClick = signIn,
             label = "Login",
             isLoading = screenState.authState == AuthState.Loading)
 
@@ -185,16 +206,7 @@ fun SignInContent(
                 .constrainAs(googleButton) {
                     top.linkTo(orText.bottom, 16.dp)
                 },
-            onClick = {
-
-                if (isInternetConnected(context))
-                    coroutineScope.launch {
-
-                        googleSignInAuth.signIn()
-                    }
-                else
-                    onInternetError()
-            },
+            onClick = signInWithGoogle,
             label = "Continue With Google",
             iconId = R.drawable.google
         )
@@ -204,22 +216,7 @@ fun SignInContent(
                 .constrainAs(faceButton){
                     top.linkTo(googleButton.bottom,16.dp)
                 },
-            onClick = {
-                coroutineScope.launch {
-                    facebookSignInAuth.registerFacebookCallback(
-                        onSuccess = { token ->
-                            facebookSignInAuth.handleFacebookAccessToken(token) { _ , message ->
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        onError = { error ->
-                            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                    facebookSignInAuth.login(context as Activity)
-                }
-            }
-            ,
+            onClick = signInWithFacebook,
             label = "Continue With Facebook",
             iconId = R.drawable.face
         )

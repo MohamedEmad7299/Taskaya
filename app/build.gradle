@@ -71,6 +71,7 @@ dependencies {
     implementation libs.firebase.crashlytics.buildtools
     implementation libs.firebase.database.ktx
     implementation libs.firebase.firestore.ktx
+    implementation libs.play.services.auth.v2070
 
     // Testing libraries
     testImplementation libs.junit
@@ -100,10 +101,12 @@ dependencies {
     // Firebase (Using Firebase BOM)
     implementation platform(libs.firebase.bom)
     implementation libs.google.firebase.auth
+    implementation libs.google.firebase.firestore.ktx.v2440
 
     // Play Services Authentication
     implementation libs.androidx.credentials
     implementation libs.androidx.credentials.play.services.auth
+    implementation libs.play.services.auth.v2070
 
     // Facebook SDK
     implementation libs.facebook.android.sdk.v450
@@ -111,6 +114,7 @@ dependencies {
     // Lifecycle
     implementation libs.androidx.lifecycle.runtime.ktx.v261
     implementation libs.androidx.lifecycle.viewmodel.ktx
+
 }
 
 kapt {

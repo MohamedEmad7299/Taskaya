@@ -64,7 +64,7 @@ class ResetPasswordViewModel @Inject constructor(
                     it.copy(
                         launchedEffectKey = !it.launchedEffectKey,
                         authState = AuthState.Error,
-                        message = exception.message ?: "Failed to send reset email"
+                        message = exception.message ?: "Error to send reset email"
                     )
                 }
             }
@@ -74,11 +74,5 @@ class ResetPasswordViewModel @Inject constructor(
     fun onChangeEmail(newEmail : String){
 
         _screenState.update { it.copy(email = newEmail) }
-    }
-
-    fun onInternetError(){
-        _screenState.update { it.copy(
-            message = "No Internet Connection",
-            launchedEffectKey = !_screenState.value.launchedEffectKey) }
     }
 }

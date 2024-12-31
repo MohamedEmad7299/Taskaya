@@ -1,11 +1,10 @@
-package com.ug.taskaya
+package com.ug.taskaya.ui
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.ug.taskaya.ui.TaskayaApp
-import com.ug.taskaya.ui.sign_in_screen.FacebookSignInAuth
+import com.ug.taskaya.data.repositories.FacebookSignInAuth
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

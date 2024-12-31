@@ -27,11 +27,11 @@ import com.ug.taskaya.ui.theme.Ment
 
 
 @Composable
-fun CategoriesBar() {
+fun LabelsBar(labels: List<String>, onClickLabel: () -> Unit) {
 
-    var selectedCategory by remember { mutableStateOf("All") }
+    val displayLabels = listOf("All") + labels
 
-    val categories = listOf("All", "Work", "Personal", "Wishlist", "Birthday")
+    var selectedLabel by remember { mutableStateOf("All") }
 
     LazyRow(
         modifier = Modifier
@@ -40,12 +40,15 @@ fun CategoriesBar() {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(categories){ category ->
-                CategoryChip(
-                    label = category,
-                    isSelected = selectedCategory == category,
-                    onClick = { selectedCategory = category }
-                )
+        items(displayLabels) { label ->
+            LabelChip(
+                label = label,
+                isSelected = selectedLabel == label,
+                onClick = {
+                    selectedLabel = label
+                    onClickLabel()
+                }
+            )
         }
     }
 }
@@ -54,8 +57,7 @@ fun CategoriesBar() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CategoryChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
-
+fun LabelChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
 
     Chip(
         onClick = onClick,

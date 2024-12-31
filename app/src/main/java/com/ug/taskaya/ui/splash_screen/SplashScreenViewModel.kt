@@ -16,4 +16,6 @@ class SplashScreenViewModel @Inject constructor(
 
         return auth.currentUser != null
     }
+
+
 }

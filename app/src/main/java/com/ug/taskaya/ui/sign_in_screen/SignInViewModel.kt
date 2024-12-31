@@ -1,9 +1,10 @@
 package com.ug.taskaya.ui.sign_in_screen
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
+import androidx.navigation.NavController
 import com.ug.taskaya.data.repositories.Repository
 import com.ug.taskaya.utils.AuthState
+import com.ug.taskaya.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,8 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val repository: Repository,
-    private val auth: FirebaseAuth,
+    private val repository: Repository
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow(
@@ -31,32 +31,58 @@ class SignInViewModel @Inject constructor(
 
     val screenState = _screenState.asStateFlow()
 
-
-    fun signIn(email: String, password: String) {
-
-        _screenState.update { it.copy(authState = AuthState.Loading) }
-
-        repository.signIn(email, password) { isSuccess, message ->
-            _screenState.update {
-                it.copy(
-                    launchedEffectKey = !it.launchedEffectKey,
-                    authState = if (isSuccess) AuthState.Authenticated else AuthState.Error,
-                    message = message
-                )
+    fun navigateTo(
+        navController: NavController,
+        route: String,
+        clearStack: Boolean = false
+    ){
+        navController.navigate(route) {
+            if (clearStack) {
+                popUpTo(navController.graph.id){
+                    inclusive = true
+                }
             }
         }
     }
 
-    fun signOut() {
+    suspend fun addNewUserToFireStore(){
+        if (!userInFireStore())
+        repository.addNewUserToFireStore()
+    }
+
+    private suspend fun userInFireStore(): Boolean{
+
+        return  repository.fetchUserByEmail().isSuccess
+    }
+
+    fun signIn(email: String, password: String , navController: NavController) {
 
         _screenState.update { it.copy(authState = AuthState.Loading) }
 
-        repository.signOut {
-            _screenState.update {
-                it.copy(
-                    launchedEffectKey = !it.launchedEffectKey,
-                    authState = AuthState.Unauthenticated
-                )
+        repository.signIn(email, password) { isSuccess, message ->
+
+            if (isSuccess) {
+
+                _screenState.update {
+
+                    it.copy(
+                        launchedEffectKey = !it.launchedEffectKey,
+                        authState = AuthState.Authenticated,
+                        message = message
+                    )
+                }
+
+                navigateTo(navController,Screen.TasksScreen.route,true)
+
+            } else {
+
+                _screenState.update {
+                    it.copy(
+                        authState = AuthState.Error,
+                        message = message,
+                        launchedEffectKey = !it.launchedEffectKey
+                    )
+                }
             }
         }
     }
@@ -69,12 +95,6 @@ class SignInViewModel @Inject constructor(
     fun onChangePassword(newPassword : String){
 
         _screenState.update { it.copy(password = newPassword) }
-    }
-
-    fun onInternetError(){
-        _screenState.update { it.copy(
-            message = "No Internet Connection",
-            launchedEffectKey = !_screenState.value.launchedEffectKey) }
     }
 }
 
