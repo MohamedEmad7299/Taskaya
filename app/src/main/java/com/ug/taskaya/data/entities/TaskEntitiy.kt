@@ -6,6 +6,7 @@ data class TaskEntity(
     val labels: List<String>,
     val dueDate: String,
     val isRepeated: Boolean,
+    val completionDate: String,
     val isStared: Boolean,
     val priority: Long,
     val isCompleted: Boolean

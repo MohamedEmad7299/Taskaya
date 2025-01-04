@@ -138,7 +138,7 @@ fun DrawerItem(iconID: Int, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun Labels(subCategories: List<String>) {
+fun Labels(labels: List<String>) {
 
     var expanded by remember{ mutableStateOf(false) }
 
@@ -187,7 +187,7 @@ fun Labels(subCategories: List<String>) {
 
         if (expanded){
 
-            for (subCategory in subCategories){
+            for (subCategory in labels){
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,

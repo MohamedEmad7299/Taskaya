@@ -322,7 +322,8 @@ class Repository @Inject constructor(
         "isRepeated" to isRepeated,
         "isStared" to isStared,
         "priority" to priority,
-        "isCompleted" to isCompleted
+        "isCompleted" to isCompleted,
+        "completionDate" to completionDate
     )
 
     private fun Map<String, Any>.toTaskEntity(): TaskEntity = TaskEntity(
@@ -333,7 +334,8 @@ class Repository @Inject constructor(
         isRepeated = this["isRepeated"] as? Boolean ?: false,
         isStared = this["isStared"] as? Boolean ?: false,
         priority = this["priority"] as? Long ?: 0L,
-        isCompleted = this["isCompleted"] as? Boolean ?: false
+        isCompleted = this["isCompleted"] as? Boolean ?: false,
+        completionDate = this["completionDate"] as? String ?: ""
     )
 
 }

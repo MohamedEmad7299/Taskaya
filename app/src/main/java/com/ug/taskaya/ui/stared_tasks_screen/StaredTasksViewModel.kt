@@ -23,7 +23,18 @@ class StaredTasksViewModel @Inject constructor(
         StaredTasksState(
             message = "",
             launchedEffectKey = false,
-            staredTasks = emptyList()
+            staredTasks = emptyList(),
+            taskOnHold = TaskEntity(
+                id = 0,
+                taskContent = "",
+                labels = emptyList(),
+                dueDate = "",
+                isRepeated = false,
+                isStared = false,
+                priority = 0,
+                isCompleted = false,
+                completionDate = ""
+            )
         )
     )
 
@@ -31,6 +42,10 @@ class StaredTasksViewModel @Inject constructor(
 
     init {
         startListeningToTasks()
+    }
+
+    fun updateTaskOnHold(task: TaskEntity){
+        _screenState.update { it.copy(taskOnHold = task) }
     }
 
     private fun updateStaredTasks(staredTasks: List<TaskEntity>){
@@ -53,6 +68,7 @@ class StaredTasksViewModel @Inject constructor(
     }
 
     private fun startListeningToTasks() {
+
         repository.listenToTasks{ result ->
 
             result.onSuccess { tasks ->
@@ -67,10 +83,6 @@ class StaredTasksViewModel @Inject constructor(
     }
 
     fun updateTask(task: TaskEntity){
-
-        updateStaredTasks(
-            _screenState.value.staredTasks.filter { it.id != task.id }
-        )
 
         viewModelScope.launch {
             val result = repository.updateTaskForCurrentUser(task)

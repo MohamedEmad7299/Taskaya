@@ -54,6 +54,7 @@ import com.ug.taskaya.ui.theme.DarkGray
 import com.ug.taskaya.ui.theme.Gold
 import com.ug.taskaya.ui.theme.Ment
 import com.ug.taskaya.utils.Screen
+import com.ug.taskaya.utils.SharedState
 
 
 @Composable
@@ -65,8 +66,11 @@ fun WritingTaskScreen(
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit){
+    val taskOnEdit = SharedState.onEditTask.collectAsState()
+    val tasks = SharedState.tasks.collectAsState()
 
+    LaunchedEffect(Unit){
+        viewModel.updateTaskOnEdit(taskOnEdit.value)
         viewModel.collectSelectedLabels()
     }
 
@@ -78,7 +82,10 @@ fun WritingTaskScreen(
 
     WritingTaskContent(
         screenState = screenState,
-        saveTask = { viewModel.saveTask(navController) },
+        saveTask = {
+            if (viewModel.isTaskExist(tasks = tasks.value)) viewModel.updateTask(navController)
+            else viewModel.saveTask(navController)
+        },
         newTask = screenState.task,
         onClickLabels = { navController.navigate(Screen.LabelsScreen.route) },
         onChangeTaskContent = viewModel::onChangeTaskContent,
@@ -112,20 +119,30 @@ fun WritingTaskContent(
     val showDatePicker = remember { mutableStateOf(false) }
 
     if (showDatePicker.value) {
+
         val datePicker = android.app.DatePickerDialog(
             context,
             { _, year, month, day ->
 
-                val selectedDate = "$day/${month + 1}/$year"
+                val selectedDate = String.format("%02d/%02d/%04d", day, month + 1, year)
                 onClickDate(selectedDate)
                 showDatePicker.value = false
             },
-            newTask.dueDate.split("/").getOrNull(2)?.toIntOrNull() ?: 2024,
-            newTask.dueDate.split("/").getOrNull(1)?.toIntOrNull()?.minus(1) ?: 0,
-            newTask.dueDate.split("/").getOrNull(0)?.toIntOrNull() ?: 1
+
+            newTask.dueDate.split("/").getOrNull(2)?.toIntOrNull() ?: 2025, // Year
+            newTask.dueDate.split("/").getOrNull(1)?.toIntOrNull()?.minus(1) ?: 0, // Month (0-based)
+            newTask.dueDate.split("/").getOrNull(0)?.toIntOrNull() ?: 1 // Day
         )
 
         datePicker.datePicker.minDate = java.util.Calendar.getInstance().timeInMillis
+
+        datePicker.setOnCancelListener {
+            showDatePicker.value = false
+        }
+
+        datePicker.setOnDismissListener {
+            showDatePicker.value = false
+        }
 
         datePicker.show()
     }
@@ -144,7 +161,7 @@ fun WritingTaskContent(
             val (backArrow,category,task, divider1,
                 divider2,divider3,divider4,dueDate,
                 date,repeatTask,noOrYes,priority,color,
-                addImage, starButton, saveButton) = createRefs()
+                isStared, starButton, saveButton) = createRefs()
 
 
             if (screenState.savingState == SavingState.Loading)
@@ -329,7 +346,7 @@ fun WritingTaskContent(
                 color = Color.Black)
 
             DetailsItem(
-                modifier = Modifier.constrainAs(addImage){
+                modifier = Modifier.constrainAs(isStared){
                     top.linkTo(divider4.bottom,24.dp)
                     start.linkTo(parent.start,16.dp)
                 },

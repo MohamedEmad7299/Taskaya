@@ -6,15 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.ug.taskaya.data.entities.TaskEntity
 import com.ug.taskaya.data.repositories.Repository
-import com.ug.taskaya.ui.theme.OffWhite
 import com.ug.taskaya.utils.SharedState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
@@ -23,32 +20,95 @@ class WritingTaskViewModel @Inject constructor(
     private val repository: Repository
 ): ViewModel(){
 
-
-    private val currentDate: String = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-
     private val _screenState = MutableStateFlow(
 
         WritingTaskState(
             message = "",
             launchedEffectKey = false,
             savingState = SavingState.Error,
-            task = TaskEntity(
-                id = System.currentTimeMillis(),
-                labels = emptyList(),
-                isRepeated = false,
-                isStared = false,
-                dueDate = currentDate,
-                taskContent = "",
-                priority = OffWhite.value.toLong(),
-                isCompleted = false
-            )
+            task = SharedState.onEditTask.value
         )
     )
 
     val screenState = _screenState.asStateFlow()
 
 
+    fun isTaskExist(tasks: List<TaskEntity>):Boolean {
+        return tasks.any{ it.id == _screenState.value.task.id }
+    }
+
+    fun updateTask(navController : NavController){
+
+        if (_screenState.value.task.taskContent.isBlank()) {
+
+            _screenState.update {
+                it.copy(
+                    launchedEffectKey = !it.launchedEffectKey,
+                    message = "Task content cannot be empty"
+                )
+            }
+
+            return
+        }
+
+        viewModelScope.launch {
+
+            val result = repository.updateTaskForCurrentUser(_screenState.value.task)
+
+            result.onFailure {
+                _screenState.update { it.copy(launchedEffectKey = !it.launchedEffectKey,
+                    message = "Something went wrong") }
+            }
+
+            if (result.isSuccess){
+
+                _screenState.update {
+                    it.copy(
+                        launchedEffectKey = !it.launchedEffectKey,
+                        message = "Task saved successfully",
+                        savingState = SavingState.Success
+                    )
+                }
+
+                updateSharedEditTask()
+
+                navController.popBackStack()
+            }
+        }
+    }
+
+    private fun updateSharedEditTask(){
+
+        SharedState.updateOnEditTask(
+            TaskEntity(
+                id = System.currentTimeMillis(),
+                taskContent = "",
+                isRepeated = false,
+                isCompleted = false,
+                dueDate = "",
+                labels = emptyList(),
+                priority = 0,
+                completionDate = "",
+                isStared = false
+            )
+        )
+    }
+
+    fun updateTaskOnEdit(task: TaskEntity){
+        _screenState.update { it.copy(task = task) }
+    }
+
     fun saveTask(navController: NavController) {
+
+        if (_screenState.value.task.taskContent.isBlank()) {
+            _screenState.update {
+                it.copy(
+                    launchedEffectKey = !it.launchedEffectKey,
+                    message = "Task content cannot be empty"
+                )
+            }
+            return
+        }
 
         _screenState.update { it.copy( savingState = SavingState.Loading) }
 
@@ -78,6 +138,7 @@ class WritingTaskViewModel @Inject constructor(
             }
 
             if (result.isSuccess){
+                updateSharedEditTask()
                 SharedState.updateTasks(listOf(taskToAdd))
                 navController.popBackStack()
             }

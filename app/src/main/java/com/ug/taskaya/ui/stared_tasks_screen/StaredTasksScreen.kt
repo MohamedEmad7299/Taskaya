@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +32,8 @@ import androidx.navigation.NavController
 import com.ug.taskaya.R
 import com.ug.taskaya.data.entities.TaskEntity
 import com.ug.taskaya.ui.composables.TaskItem
+import com.ug.taskaya.utils.Screen
+import com.ug.taskaya.utils.SharedState
 
 @Composable
 fun StaredTasksScreen(
@@ -48,16 +52,17 @@ fun StaredTasksScreen(
 
     StaredTasksContent(
         screenState = screenState,
-        onCheckTask = {
-            // not yet
-        },
+        onCheckTask = viewModel::updateTask,
         onClickBackIcon = { navController.popBackStack() },
-        onClickTask = {},
+        onClickTask = { task ->
+
+            SharedState.updateOnEditTask(task)
+            navController.navigate(Screen.WritingTaskScreen.route)
+        },
         onClickDelete = viewModel::deleteTask,
         onClickStar = viewModel::updateTask,
-        onClickDate = {
-
-        }
+        onClickDate = viewModel::updateTask,
+        updateTaskOnHold = viewModel::updateTaskOnHold
     )
 }
 
@@ -70,9 +75,42 @@ fun StaredTasksContent(
     onClickDelete: (Long) -> Unit,
     onClickDate: (TaskEntity) -> Unit,
     onClickStar: (TaskEntity) -> Unit,
+    updateTaskOnHold: (TaskEntity) -> Unit
 ){
 
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
+
+    val showDatePicker = remember { mutableStateOf(false) }
+
+    if (showDatePicker.value) {
+
+        val datePicker = android.app.DatePickerDialog(
+            context,
+            { _, year, month, day ->
+
+                val selectedDate = String.format("%02d/%02d/%04d", day, month + 1, year)
+                onClickDate(screenState.taskOnHold.copy(dueDate = selectedDate))
+                showDatePicker.value = false
+            },
+            screenState.taskOnHold.dueDate.split("/").getOrNull(2)?.toIntOrNull() ?: 2025,
+            screenState.taskOnHold.dueDate.split("/").getOrNull(1)?.toIntOrNull()?.minus(1) ?: 0,
+            screenState.taskOnHold.dueDate.split("/").getOrNull(0)?.toIntOrNull() ?: 1
+        )
+
+        datePicker.datePicker.minDate = java.util.Calendar.getInstance().timeInMillis
+
+        datePicker.setOnCancelListener {
+            showDatePicker.value = false
+        }
+
+        datePicker.setOnDismissListener {
+            showDatePicker.value = false
+        }
+
+        datePicker.show()
+    }
 
     Column(
         modifier = Modifier
@@ -123,10 +161,16 @@ fun StaredTasksContent(
                     TaskItem(
                         task = task,
                         onClickDelete = { onClickDelete(task.id) },
-                        onClickDate = { onClickDate(task) },
+                        onClickDate =
+                        {
+                            updateTaskOnHold(task)
+                            showDatePicker.value = true
+                        },
                         onClickTask = { onClickTask(task) },
                         onClickStar = { onClickStar(task.copy(isStared = !it.isStared)) },
-                        onCheckTask = { onCheckTask(task) }
+                        onCheckTask = {
+                            onCheckTask(task.copy(isCompleted = !it.isCompleted))
+                        }
                     )
                 }
             }

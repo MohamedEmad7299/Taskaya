@@ -57,13 +57,13 @@ fun TaskItem(
     onClickStar: (TaskEntity) -> Unit,
     onClickDelete: (Long) -> Unit,
     onClickDate: (TaskEntity) -> Unit,
-    onCheckTask: () -> Unit,
+    onCheckTask: (TaskEntity) -> Unit,
 ){
 
     val swipeOffset = remember { Animatable(0f) }
     val maxSwipeOffset = 500f
     val coroutineScope = rememberCoroutineScope()
-    var isCompleted by remember { mutableStateOf(false) }
+    var isCompleted by remember { mutableStateOf(task.isCompleted) }
     val cornerRadius = 5.dp
 
     Box(
@@ -108,7 +108,6 @@ fun TaskItem(
         }
 
         Row(
-
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
@@ -141,7 +140,7 @@ fun TaskItem(
             IconButton(
                 onClick = {
                     isCompleted = !isCompleted
-                    onCheckTask()
+                    onCheckTask(task)
                 }
             ){
                 if (isCompleted) {

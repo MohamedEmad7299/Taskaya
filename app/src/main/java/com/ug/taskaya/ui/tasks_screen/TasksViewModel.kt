@@ -30,11 +30,11 @@ class TasksViewModel @Inject constructor(
 
     init {
 
-        clearSelectedTasks()
+        clearSelectedLabels()
     }
 
 
-    private fun clearSelectedTasks(){
+    private fun clearSelectedLabels(){
 
         SharedState.updateSelectedLabels(emptyList())
     }
