@@ -13,8 +13,8 @@ object SharedState {
     private val _selectedLabels = MutableStateFlow<List<String>>(emptyList())
     val selectedLabels = _selectedLabels.asStateFlow()
 
-    private val _allLabels = MutableStateFlow<List<String>>(emptyList())
-    val allLabels = _allLabels.asStateFlow()
+    private val _labels = MutableStateFlow<List<String>>(emptyList())
+    val labels = _labels.asStateFlow()
 
     private val _tasks = MutableStateFlow<List<TaskEntity>>(emptyList())
     val tasks = _tasks.asStateFlow()
@@ -32,13 +32,20 @@ object SharedState {
     ))
     val onEditTask = _onEditTask.asStateFlow()
 
+    private val _currentLabel = MutableStateFlow("All")
+    val currentLabel = _currentLabel.asStateFlow()
+
+
+    fun updateCurrentLabel(label: String) {
+        _currentLabel.value = label
+    }
 
     fun updateOnEditTask(newTask: TaskEntity) {
         _onEditTask.value = newTask
     }
 
     fun updateTasks(newTasks: List<TaskEntity>) {
-        _tasks.value += newTasks
+        _tasks.value = newTasks
     }
 
     fun updateSelectedLabels(newLabels: List<String>) {
@@ -46,6 +53,6 @@ object SharedState {
     }
 
     fun updateAllLabels(newLabels: List<String>) {
-        _allLabels.value = newLabels
+        _labels.value = newLabels
     }
 }

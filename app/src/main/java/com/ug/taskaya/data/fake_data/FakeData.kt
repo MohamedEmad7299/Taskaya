@@ -1,4 +1,19 @@
-package com.ug.taskaya.utils
+package com.ug.taskaya.data.fake_data
+
+import androidx.compose.ui.graphics.Color
+import com.ug.taskaya.ui.theme.Bronze
+import com.ug.taskaya.ui.theme.Challenger
+import com.ug.taskaya.ui.theme.Diamond
+import com.ug.taskaya.ui.theme.Emerald
+import com.ug.taskaya.ui.theme.Gold
+import com.ug.taskaya.ui.theme.Grandmaster
+import com.ug.taskaya.ui.theme.Iron
+import com.ug.taskaya.ui.theme.Master
+import com.ug.taskaya.ui.theme.Platinum
+import com.ug.taskaya.ui.theme.Silver
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object FakeData {
 
@@ -50,5 +65,49 @@ object FakeData {
         "The shorter way to do many things is to only do one thing at a time. Mozart",
         "This time, like all times, is a very good one, if we but know what to do with it. Ralph Waldo Emerson",
         "What may be done at any time will be done at no time. Scottish Proverb",
-        )
+    )
+
+    val ranks = listOf(
+        Triple(0..9,"Unranked", Color.Black) ,
+        Triple(10..19,"Iron", Iron),
+        Triple(20..39,"Bronze", Bronze),
+        Triple(40..79,"Silver", Silver),
+        Triple(80..159,"Gold" , Gold),
+        Triple(160..319,"Platinum", Platinum),
+        Triple(320..639,"Emerald", Emerald),
+        Triple(640..1279,"Diamond", Diamond),
+        Triple(1280..2559,"Master", Master),
+        Triple(2560..5119,"Grandmaster", Grandmaster),
+        Triple(5120..Int.MAX_VALUE ,"Challenger", Challenger),
+    )
+
+    fun getRank(completedTasksNumber: Int): Triple<IntRange,String,Color>{
+
+        for (rank in ranks){
+
+            if (completedTasksNumber in rank.first) return rank
+        }
+
+        return ranks[0]
+    }
+
+    fun getDatesOfThisWeek(): List<String> {
+        val today = LocalDate.now()
+        val currentDayOfWeek = today.dayOfWeek.value // 1 (Monday) to 7 (Sunday)
+
+        // Calculate the start of the week (Saturday) and end of the week (Friday)
+        val startOfWeek = today.minusDays(((currentDayOfWeek - DayOfWeek.SATURDAY.value + 7) % 7).toLong())
+        val endOfWeek = startOfWeek.plusDays(6)
+
+        val weekDates = mutableListOf<LocalDate>()
+        var currentDate = startOfWeek
+        while (!currentDate.isAfter(endOfWeek)) {
+            weekDates.add(currentDate)
+            currentDate = currentDate.plusDays(1)
+        }
+
+        // Format the dates if needed
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        return weekDates.map { it.format(formatter) }
+    }
 }

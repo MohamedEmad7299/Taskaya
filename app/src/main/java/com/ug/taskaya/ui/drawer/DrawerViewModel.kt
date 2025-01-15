@@ -7,7 +7,6 @@ import com.ug.taskaya.utils.SharedState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,14 +20,14 @@ class DrawerViewModel @Inject constructor(
 
         DrawerState(
             message = "",
-            launchedEffectKey = false,
-            labels = emptyList()
+            launchedEffectKey = false
         )
     )
 
     val screenState = _screenState.asStateFlow()
 
     init {
+        fetchTasks()
         fetchLabels()
     }
 
@@ -44,8 +43,15 @@ class DrawerViewModel @Inject constructor(
         }
     }
 
-    fun updateLabels(labels: List<String>) {
+    private fun fetchTasks() {
 
-        _screenState.update { it.copy(labels = labels) }
+        viewModelScope.launch {
+
+            repository.listenToTasks{ result ->
+                result.onSuccess { tasks ->
+                    SharedState.updateTasks(tasks)
+                }
+            }
+        }
     }
 }

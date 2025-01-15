@@ -3,6 +3,8 @@ package com.ug.taskaya.ui.writing_task_screen
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,7 +35,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -66,12 +70,10 @@ fun WritingTaskScreen(
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
 
-    val taskOnEdit = SharedState.onEditTask.collectAsState()
-    val tasks = SharedState.tasks.collectAsState()
+    val selectedLabels by SharedState.selectedLabels.collectAsState()
 
     LaunchedEffect(Unit){
-        viewModel.updateTaskOnEdit(taskOnEdit.value)
-        viewModel.collectSelectedLabels()
+        viewModel.onChangeTaskLabels(selectedLabels)
     }
 
     if (screenState.message.isNotEmpty()){
@@ -83,7 +85,7 @@ fun WritingTaskScreen(
     WritingTaskContent(
         screenState = screenState,
         saveTask = {
-            if (viewModel.isTaskExist(tasks = tasks.value)) viewModel.updateTask(navController)
+            if (viewModel.isTaskExist(tasks = screenState.tasks)) viewModel.updateTask(navController)
             else viewModel.saveTask(navController)
         },
         newTask = screenState.task,
@@ -113,7 +115,7 @@ fun WritingTaskContent(
 ){
 
     val scrollState = rememberScrollState()
-
+    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
 
     val showDatePicker = remember { mutableStateOf(false) }
@@ -147,12 +149,26 @@ fun WritingTaskContent(
         datePicker.show()
     }
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
             .background(Color.White)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        focusManager.clearFocus()
+                    },
+                    onDrag = { change, dragAmount ->
+                        // Handle drag logic here if needed
+                    }
+                )
+            }
     ){
         ConstraintLayout(
             Modifier.fillMaxSize()
@@ -408,4 +424,6 @@ fun WritingTaskContent(
             }
         }
     }
+
+
 }

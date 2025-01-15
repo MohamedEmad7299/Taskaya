@@ -1,6 +1,7 @@
 package com.ug.taskaya.ui.drawer
 
 
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -37,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
+import com.ug.taskaya.data.entities.TaskEntity
 import com.ug.taskaya.ui.theme.DarkGray
 import com.ug.taskaya.ui.theme.Ment
 import com.ug.taskaya.utils.Screen
@@ -46,19 +50,37 @@ import com.ug.taskaya.utils.SharedState
 @Composable
 fun DrawerScreen(
     navController: NavController,
-    viewModel: DrawerViewModel = hiltViewModel()
+    viewModel: DrawerViewModel = hiltViewModel(),
+    closeDrawer: () -> Unit
 ){
 
     val screenState by viewModel.screenState.collectAsState()
-    val labels by SharedState.allLabels.collectAsState()
+    val context = LocalContext.current
 
-    viewModel.updateLabels(labels)
+    if (screenState.message.isNotEmpty()){
+        LaunchedEffect(key1 = screenState.launchedEffectKey){
+            Toast.makeText(context, screenState.message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     DrawerContent(
-        onClickSettings = { navController.navigate(Screen.SettingsScreen.route) },
-        createNewLabel = { navController.navigate(Screen.DeleteLabelsScreen.route) },
-        labels = screenState.labels,
-        onClickStaredTasks = { navController.navigate(Screen.StaredTasksScreen.route) },
+        onClickSettings = {
+            closeDrawer()
+            navController.navigate(Screen.SettingsScreen.route)
+        },
+        createNewLabel = {
+            closeDrawer()
+            navController.navigate(Screen.DeleteLabelsScreen.route)
+        },
+        onClickStaredTasks = {
+            closeDrawer()
+            navController.navigate(Screen.StaredTasksScreen.route)
+        },
+        onClickLabel = {
+            closeDrawer()
+            navController.navigate(Screen.TasksScreen.route)
+        }
     )
 }
 
@@ -66,11 +88,14 @@ fun DrawerScreen(
 fun DrawerContent(
     onClickSettings: () -> Unit,
     createNewLabel: () -> Unit,
-    labels: List<String>,
     onClickStaredTasks: () -> Unit,
+    onClickLabel: () -> Unit
 ) {
 
     val scrollState = rememberScrollState()
+
+    val tasks by SharedState.tasks.collectAsState()
+    val labels by SharedState.labels.collectAsState()
 
     ModalDrawerSheet(
         modifier = Modifier
@@ -95,7 +120,7 @@ fun DrawerContent(
             onClick = onClickStaredTasks
         )
 
-        Labels(labels)
+        Labels(labels,onClickLabel,tasks)
 
         DrawerItem(
             iconID = R.drawable.plus_icon,
@@ -138,7 +163,7 @@ fun DrawerItem(iconID: Int, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun Labels(labels: List<String>) {
+fun Labels(labels: List<String> , onClickLabel: () -> Unit , tasks: List<TaskEntity>) {
 
     var expanded by remember{ mutableStateOf(false) }
 
@@ -187,13 +212,17 @@ fun Labels(labels: List<String>) {
 
         if (expanded){
 
-            for (subCategory in labels){
+            for (label in labels){
+
+                val labelsCount = tasks.filter { it.labels.contains(label) }.size.toString()
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ){
-                    DrawerSubcategory(iconID = R.drawable.sub_icon, label = subCategory, count = "0", onClick = {})
+                    DrawerSubcategory(iconID = R.drawable.sub_icon, label = label,
+                        count = labelsCount,
+                        onClick = onClickLabel)
                 }
 
             }
@@ -205,6 +234,7 @@ fun Labels(labels: List<String>) {
 fun DrawerSubcategory(iconID: Int, label: String, onClick: () -> Unit, count: String) {
 
     NavigationDrawerItem(
+
         label = {
 
             Row(
@@ -233,7 +263,10 @@ fun DrawerSubcategory(iconID: Int, label: String, onClick: () -> Unit, count: St
                 tint = DarkGray,
                 contentDescription = null)
         },
-        onClick = onClick,
+        onClick = {
+            SharedState.updateCurrentLabel(label)
+            onClick()
+        },
         selected = false,
         colors = NavigationDrawerItemDefaults.colors(
             unselectedContainerColor = Color.White

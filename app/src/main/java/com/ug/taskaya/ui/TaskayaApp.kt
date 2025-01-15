@@ -20,6 +20,7 @@
     import com.ug.taskaya.ui.reset_password_screen.ResetPasswordScreen
     import com.ug.taskaya.ui.settings_screen.SettingsScreen
     import com.ug.taskaya.data.repositories.FacebookSignInAuth
+    import com.ug.taskaya.ui.ranks_screen.RanksScreen
     import com.ug.taskaya.ui.sign_in_screen.SignInScreen
     import com.ug.taskaya.ui.sign_up_screen.SignUpScreen
     import com.ug.taskaya.ui.splash_screen.SplashScreen
@@ -50,13 +51,22 @@
     
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val coroutineScope = rememberCoroutineScope()
-    
+
+        val scope = rememberCoroutineScope()
     
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
     
-                DrawerScreen(navController)
+                DrawerScreen(
+                    navController = navController,
+                    closeDrawer = {
+
+                        scope.launch {
+                            drawerState.close()
+                        }
+                    }
+                )
             }
         ){
     
@@ -103,10 +113,10 @@
                     composable(Screen.WritingTaskScreen.route){ WritingTaskScreen(navController) }
                     composable(Screen.LabelsScreen.route){ LabelsScreen(navController) }
                     composable(Screen.TasksScreen.route){ TasksScreen(navController) }
-                    composable(Screen.DrawerScreen.route){ DrawerScreen(navController) }
                     composable(Screen.SettingsScreen.route){ SettingsScreen(navController) }
                     composable(Screen.DeleteLabelsScreen.route){ DeleteLabelsScreen(navController) }
                     composable(Screen.StaredTasksScreen.route){ StaredTasksScreen(navController) }
+                    composable(Screen.RanksScreen.route){ RanksScreen(navController) }
                 }
             }
         }

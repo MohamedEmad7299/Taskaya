@@ -24,14 +24,15 @@ import androidx.compose.ui.unit.dp
 import com.ug.taskaya.R
 import com.ug.taskaya.ui.theme.LightGreen
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.SharedState
 
 
 @Composable
-fun LabelsBar(labels: List<String>, onClickLabel: () -> Unit) {
+fun LabelsBar(labels: List<String>, onClickLabel: () -> Unit, currentSelectedLabel: String) {
 
     val displayLabels = listOf("All") + labels
 
-    var selectedLabel by remember { mutableStateOf("All") }
+    var selectedLabel by remember { mutableStateOf(currentSelectedLabel) }
 
     LazyRow(
         modifier = Modifier
@@ -47,6 +48,7 @@ fun LabelsBar(labels: List<String>, onClickLabel: () -> Unit) {
                 onClick = {
                     selectedLabel = label
                     onClickLabel()
+                    SharedState.updateCurrentLabel(label)
                 }
             )
         }

@@ -1,13 +1,12 @@
 package com.ug.taskaya.ui.sign_up_screen
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.ug.taskaya.data.entities.UserEntity
 import com.ug.taskaya.data.repositories.Repository
 import com.ug.taskaya.utils.AuthState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -35,8 +34,12 @@ class SignUpViewModel @Inject constructor(
     val screenState = _screenState.asStateFlow()
 
     private fun isSignUpReady(): Boolean {
-        if (_screenState.value.password != _screenState.value.rePassword) {
+
+        if (_screenState.value.password != _screenState.value.rePassword &&
+            _screenState.value.name.length > 2 &&
+            _screenState.value.name.isNotBlank()) {
             _screenState.update {
+
                 it.copy(
                     authState = AuthState.Error,
                     message = "Password and Re-password must be identical",
@@ -56,6 +59,7 @@ class SignUpViewModel @Inject constructor(
                     launchedEffectKey = !it.launchedEffectKey
                 )
             }
+
             return false
         }
 
@@ -98,7 +102,7 @@ class SignUpViewModel @Inject constructor(
                         labels = emptyList()
                     )
 
-                    CoroutineScope(Dispatchers.IO).launch {
+                    viewModelScope.launch {
 
                         val result = repository.addUser(user)
                         if (result.isSuccess) {

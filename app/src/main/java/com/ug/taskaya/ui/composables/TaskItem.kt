@@ -52,6 +52,7 @@ import kotlin.math.abs
 
 @Composable
 fun TaskItem(
+    modifier: Modifier = Modifier,
     task: TaskEntity,
     onClickTask: () -> Unit,
     onClickStar: (TaskEntity) -> Unit,
@@ -67,7 +68,7 @@ fun TaskItem(
     val cornerRadius = 5.dp
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .height(80.dp)
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)

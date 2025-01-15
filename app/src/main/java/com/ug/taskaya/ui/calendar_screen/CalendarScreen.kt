@@ -19,8 +19,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import com.ug.taskaya.R
+import com.ug.taskaya.data.fake_data.FakeData
 import com.ug.taskaya.ui.theme.Ment
-import com.ug.taskaya.utils.FakeData
+
 
 
 @Composable
@@ -28,7 +29,6 @@ fun CalenderScreen(navController: NavController){
 
     CalendarContent()
 }
-
 
 
 @Composable

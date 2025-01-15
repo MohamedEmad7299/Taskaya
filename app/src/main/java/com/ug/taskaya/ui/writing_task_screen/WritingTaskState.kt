@@ -7,7 +7,8 @@ data class WritingTaskState(
     val message : String,
     val launchedEffectKey : Boolean,
     val savingState: SavingState,
-    val task: TaskEntity
+    val task: TaskEntity,
+    val tasks: List<TaskEntity>
 )
 
 

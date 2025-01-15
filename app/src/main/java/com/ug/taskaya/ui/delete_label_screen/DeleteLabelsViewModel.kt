@@ -21,7 +21,7 @@ class DeleteLabelsViewModel @Inject constructor(
         DeleteLabelsState(
             message = "",
             launchedEffectKey = false,
-            labels = SharedState.allLabels.value,
+            labels = emptyList(),
             searchInput = ""
         )
     )
@@ -67,10 +67,6 @@ class DeleteLabelsViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun updateLabels(labels: List<String>){
-        _screenState.update { it.copy(labels = labels) }
     }
 
     fun removeLabel(labelName: String) {

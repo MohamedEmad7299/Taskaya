@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
@@ -26,12 +28,42 @@ class WritingTaskViewModel @Inject constructor(
             message = "",
             launchedEffectKey = false,
             savingState = SavingState.Error,
-            task = SharedState.onEditTask.value
+            task = SharedState.onEditTask.value,
+            tasks = emptyList()
         )
     )
 
     val screenState = _screenState.asStateFlow()
 
+
+    init {
+        SharedState.updateSelectedLabels(_screenState.value.task.labels)
+        fetchTasks()
+    }
+
+    private fun fetchTasks() {
+
+        viewModelScope.launch {
+
+            repository.listenToTasks{ result ->
+                result.onSuccess { tasks ->
+                    _screenState.update { it.copy(tasks = tasks) }
+                    SharedState.updateTasks(tasks)
+                }
+            }
+        }
+    }
+
+
+    fun onChangeTaskLabels(
+        labels: List<String>
+    ){
+        _screenState.update { it.copy(
+            task = it.task.copy(
+                labels = labels
+            )
+        ) }
+    }
 
     fun isTaskExist(tasks: List<TaskEntity>):Boolean {
         return tasks.any{ it.id == _screenState.value.task.id }
@@ -53,14 +85,12 @@ class WritingTaskViewModel @Inject constructor(
 
         viewModelScope.launch {
 
-            val result = repository.updateTaskForCurrentUser(_screenState.value.task)
+            val result = repository.updateTaskForCurrentUser(_screenState.value.task.copy(labels = SharedState.selectedLabels.value))
 
             result.onFailure {
                 _screenState.update { it.copy(launchedEffectKey = !it.launchedEffectKey,
                     message = "Something went wrong") }
-            }
-
-            if (result.isSuccess){
+            }.onSuccess {
 
                 _screenState.update {
                     it.copy(
@@ -70,14 +100,13 @@ class WritingTaskViewModel @Inject constructor(
                     )
                 }
 
-                updateSharedEditTask()
-
+                updateSharedState()
                 navController.popBackStack()
             }
         }
     }
 
-    private fun updateSharedEditTask(){
+    private fun updateSharedState(){
 
         SharedState.updateOnEditTask(
             TaskEntity(
@@ -85,17 +114,15 @@ class WritingTaskViewModel @Inject constructor(
                 taskContent = "",
                 isRepeated = false,
                 isCompleted = false,
-                dueDate = "",
+                dueDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 labels = emptyList(),
                 priority = 0,
                 completionDate = "",
                 isStared = false
             )
         )
-    }
 
-    fun updateTaskOnEdit(task: TaskEntity){
-        _screenState.update { it.copy(task = task) }
+        SharedState.updateSelectedLabels(emptyList())
     }
 
     fun saveTask(navController: NavController) {
@@ -127,7 +154,7 @@ class WritingTaskViewModel @Inject constructor(
 
         viewModelScope.launch {
 
-            val result = repository.addTaskToUser(currentUserEmail, taskToAdd)
+            val result = repository.addTaskToUser(currentUserEmail, taskToAdd.copy(labels = SharedState.selectedLabels.value))
 
             _screenState.update {
                 it.copy(
@@ -138,8 +165,7 @@ class WritingTaskViewModel @Inject constructor(
             }
 
             if (result.isSuccess){
-                updateSharedEditTask()
-                SharedState.updateTasks(listOf(taskToAdd))
+                updateSharedState()
                 navController.popBackStack()
             }
         }
@@ -161,13 +187,6 @@ class WritingTaskViewModel @Inject constructor(
                 taskContent = taskContent
             )
         ) }
-    }
-
-    suspend fun collectSelectedLabels(){
-
-        SharedState.selectedLabels.collect { labels ->
-            _screenState.update { it.copy(task = it.task.copy(labels = labels)) }
-        }
     }
 
     fun onChangeTaskDueDate(

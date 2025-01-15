@@ -48,6 +48,15 @@ class LabelsViewModel @Inject constructor(
         }
     }
 
+    fun updateSelectedLabels(labels :List<String>){
+
+        _screenState.update {
+            it.copy(
+                selectedLabels = labels
+            )
+        }
+    }
+
     fun changeCheckState(label: String){
 
         _screenState.update { it.copy(

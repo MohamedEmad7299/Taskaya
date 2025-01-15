@@ -14,16 +14,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.TabRowDefaults.Divider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,8 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import com.ug.taskaya.R
-import com.ug.taskaya.ui.composables.CircularImage
+import com.ug.taskaya.data.fake_data.FakeData
 import com.ug.taskaya.ui.composables.TasksBox
+import com.ug.taskaya.utils.SharedState
 
 @Composable
 fun ProfileScreen(navController: NavController){
@@ -51,6 +55,10 @@ fun ProfileContent(){
 
     val weekDays = listOf("SAT","SUN","MON","TUE","WED","THU","FRI")
 
+    val tasks by SharedState.tasks.collectAsState()
+
+    val currentRank = FakeData.getRank(tasks.filter { it.isCompleted }.size)
+
     Column(
         modifier = Modifier
             .verticalScroll(scrollState)
@@ -61,49 +69,42 @@ fun ProfileContent(){
         ConstraintLayout{
 
 
-            val (avatar,name,title,overview,
-                tasks,chart,weekTasks) = createRefs()
-
-            CircularImage(
-                modifier = Modifier.constrainAs(avatar){
-                    top.linkTo(parent.top,16.dp)
-                    start.linkTo(parent.start,16.dp)
-                },
-                imageId = R.drawable.k
-            )
+            val (name,rank,overview,
+                pendingTasks,chart,weekTasks) = createRefs()
 
             Text(
                 modifier = Modifier.constrainAs(name){
                     top.linkTo(parent.top,24.dp)
-                    start.linkTo(avatar.end,16.dp)
+                    start.linkTo(parent.start,16.dp)
                 },
                 text = "Mohamed Emad",
                 style = TextStyle(
-                    fontSize = 16.sp,
+                    fontSize = 24.sp,
                     fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(400),
+                    fontWeight = FontWeight(600),
                     color = Color(0xFF090909),
                     textAlign = TextAlign.Center,
                 )
             )
 
             Text(
-                modifier = Modifier.constrainAs(title){
-                    top.linkTo(name.bottom,8.dp)
-                    start.linkTo(avatar.end,16.dp)
+                modifier = Modifier.constrainAs(rank){
+                    top.linkTo(name.bottom)
+                    start.linkTo(parent.start,16.dp)
                 },
-                text = "Android Developer",
+                text = currentRank.second,
                 style = TextStyle(
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
+                    fontStyle = FontStyle.Italic,
                     fontFamily = FontFamily(Font(R.font.inter)),
                     fontWeight = FontWeight(400),
-                    color = Color(0xFF777777),
+                    color = currentRank.third,
                 )
             )
 
             Text(
                 modifier = Modifier.constrainAs(overview){
-                    top.linkTo(avatar.bottom,32.dp)
+                    top.linkTo(rank.bottom,32.dp)
                     start.linkTo(parent.start,16.dp)
                 },
                 text = "Tasks Overview",
@@ -120,7 +121,7 @@ fun ProfileContent(){
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
-                    .constrainAs(tasks) {
+                    .constrainAs(pendingTasks) {
                         top.linkTo(overview.bottom, 16.dp)
                     }
             ){
@@ -141,7 +142,7 @@ fun ProfileContent(){
             ConstraintLayout(
                 modifier = Modifier
                     .constrainAs(chart) {
-                        top.linkTo(tasks.bottom, 16.dp)
+                        top.linkTo(pendingTasks.bottom, 16.dp)
                     }
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
@@ -240,7 +241,7 @@ fun ProfileContent(){
                         .constrainAs(upperLine) {
                             start.linkTo(parent.start, 24.dp)
                             bottom.linkTo(parent.bottom)
-                            top.linkTo(title.top)
+                            top.linkTo(rank.top)
                         }
                         .fillMaxHeight(),
                     color = Color.Black,
@@ -254,7 +255,7 @@ fun ProfileContent(){
                         .constrainAs(digits) {
                             end.linkTo(upperLine.end, 8.dp)
                             bottom.linkTo(parent.bottom)
-                            top.linkTo(title.top)
+                            top.linkTo(rank.top)
                         }
                         .fillMaxHeight()
                 ){
@@ -320,6 +321,4 @@ fun ProfileContent(){
             }
         }
     }
-
-
 }

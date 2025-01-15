@@ -45,6 +45,9 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
+
+
+
 }
 
 dependencies {
@@ -101,7 +104,6 @@ dependencies {
     // Firebase (Using Firebase BOM)
     implementation platform(libs.firebase.bom)
     implementation libs.google.firebase.auth
-    implementation libs.google.firebase.firestore.ktx.v2440
 
     // Play Services Authentication
     implementation libs.androidx.credentials
@@ -112,10 +114,14 @@ dependencies {
     implementation libs.facebook.android.sdk.v450
 
     // Lifecycle
-    implementation libs.androidx.lifecycle.runtime.ktx.v261
     implementation libs.androidx.lifecycle.viewmodel.ktx
 
+
+    // charts
+    implementation (libs.compose.charts)
+
 }
+
 
 kapt {
     correctErrorTypes true

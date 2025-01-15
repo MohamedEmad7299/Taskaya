@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ug.taskaya.data.entities.TaskEntity
 import com.ug.taskaya.data.repositories.Repository
+import com.ug.taskaya.utils.SharedState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,14 +53,14 @@ class StaredTasksViewModel @Inject constructor(
         _screenState.update { it.copy(staredTasks = staredTasks) }
     }
 
-    fun deleteTask(taskID: Long){
+    fun deleteTask(task: TaskEntity){
 
         updateStaredTasks(
-            _screenState.value.staredTasks.filter { it.id != taskID }
+            _screenState.value.staredTasks.filter { it.id != task.id }
         )
 
         viewModelScope.launch {
-            val result = repository.deleteTaskForCurrentUser(taskID)
+            val result = repository.deleteTaskForCurrentUser(task.id)
             result.onFailure {
                 _screenState.update { it.copy(launchedEffectKey = !it.launchedEffectKey,
                     message = "Something went wrong") }
@@ -78,6 +79,7 @@ class StaredTasksViewModel @Inject constructor(
                         task.isStared }
                     )
                 }
+                SharedState.updateTasks(tasks)
             }
         }
     }

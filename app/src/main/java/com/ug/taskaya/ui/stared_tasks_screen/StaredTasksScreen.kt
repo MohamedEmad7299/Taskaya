@@ -4,8 +4,9 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -34,6 +35,8 @@ import com.ug.taskaya.data.entities.TaskEntity
 import com.ug.taskaya.ui.composables.TaskItem
 import com.ug.taskaya.utils.Screen
 import com.ug.taskaya.utils.SharedState
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun StaredTasksScreen(
@@ -72,17 +75,17 @@ fun StaredTasksContent(
     onClickBackIcon: () -> Unit,
     onCheckTask: (TaskEntity) -> Unit,
     onClickTask: (TaskEntity) -> Unit,
-    onClickDelete: (Long) -> Unit,
+    onClickDelete: (TaskEntity) -> Unit,
     onClickDate: (TaskEntity) -> Unit,
     onClickStar: (TaskEntity) -> Unit,
     updateTaskOnHold: (TaskEntity) -> Unit
 ){
 
-    val scrollState = rememberScrollState()
-
     val context = LocalContext.current
 
     val showDatePicker = remember { mutableStateOf(false) }
+
+    val todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
     if (showDatePicker.value) {
 
@@ -115,7 +118,6 @@ fun StaredTasksContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
             .background(Color.White)
     ) {
         ConstraintLayout(
@@ -151,25 +153,34 @@ fun StaredTasksContent(
                 )
             )
 
-            Column(
-                modifier = Modifier.constrainAs(tasks) {
-                    top.linkTo(staredTasksText.bottom,32.dp)
-                },
-            ){
-                screenState.staredTasks.forEach { task ->
-
+            LazyColumn(
+                modifier = Modifier
+                    .padding(bottom = 80.dp)
+                    .constrainAs(tasks) {
+                        top.linkTo(staredTasksText.bottom, 32.dp)
+                    },
+            ) {
+                items(
+                    screenState.staredTasks,
+                    key = { it.id }
+                ) { task ->
                     TaskItem(
                         task = task,
-                        onClickDelete = { onClickDelete(task.id) },
-                        onClickDate =
-                        {
+                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
+                        onClickDelete = {
+                            onClickDelete(task)
+                        },
+                        onClickDate = {
                             updateTaskOnHold(task)
                             showDatePicker.value = true
                         },
                         onClickTask = { onClickTask(task) },
-                        onClickStar = { onClickStar(task.copy(isStared = !it.isStared)) },
+                        onClickStar = { onClickStar(task.copy(isStared = !task.isStared)) },
                         onCheckTask = {
-                            onCheckTask(task.copy(isCompleted = !it.isCompleted))
+                            onCheckTask(task.copy(
+                                isCompleted = !task.isCompleted,
+                                completionDate = todayDate
+                            ))
                         }
                     )
                 }

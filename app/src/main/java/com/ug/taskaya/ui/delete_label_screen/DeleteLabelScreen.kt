@@ -3,6 +3,8 @@ package com.ug.taskaya.ui.delete_label_screen
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -25,7 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -38,7 +42,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
 import com.ug.taskaya.ui.theme.Ment
-import com.ug.taskaya.utils.SharedState
 
 
 @Composable
@@ -49,9 +52,6 @@ fun DeleteLabelsScreen(
 
     val screenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
-    val labels by SharedState.allLabels.collectAsState()
-
-    LaunchedEffect(Unit){ viewModel.updateLabels(labels) }
 
     if (screenState.message.isNotEmpty()){
         LaunchedEffect(key1 = screenState.launchedEffectKey){
@@ -79,13 +79,27 @@ fun DeleteLabelsContent(
     onSearchInputChange: (String) -> Unit,
 ){
 
-    val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
             .background(Color.White)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        focusManager.clearFocus()
+                    },
+                    onDrag = { change, dragAmount ->
+                        // Handle drag logic here if needed
+                    }
+                )
+            }
     ) {
         ConstraintLayout(
             Modifier.fillMaxSize()
@@ -182,8 +196,9 @@ fun DeleteLabelsContent(
                 }
 
                 LabelsWithDeleteIcon(
-                    modifier = Modifier.constrainAs(labelList) {
-                        top.linkTo(addLabelButton.bottom)
+                    modifier = Modifier
+                        .constrainAs(labelList) {
+                            top.linkTo(addLabelButton.bottom)
                     },
                     labels = screenState.labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
                     onClickDelete = onClickDelete
@@ -193,8 +208,9 @@ fun DeleteLabelsContent(
             else {
 
                 LabelsWithDeleteIcon(
-                    modifier = Modifier.constrainAs(labelList) {
-                        top.linkTo(backArrow.bottom, 24.dp)
+                    modifier = Modifier
+                        .constrainAs(labelList) {
+                            top.linkTo(backArrow.bottom, 24.dp)
                     },
                     labels = screenState.labels.filter { it.contains(screenState.searchInput, ignoreCase = true) },
                     onClickDelete = onClickDelete
@@ -212,12 +228,14 @@ fun LabelsWithDeleteIcon(
     onClickDelete: (String) -> Unit
 ){
 
-    Column(
+
+    LazyColumn(
         modifier = modifier
+            .padding(bottom = 80.dp)
             .background(Color.White),
     ){
 
-        labels.forEach { label ->
+        items(labels){ label ->
 
             ConstraintLayout(
                 modifier = Modifier
