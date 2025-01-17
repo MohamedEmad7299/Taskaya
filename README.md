@@ -22,7 +22,7 @@ Taskaya is your ultimate to-do list app designed to help you stay organized, pri
 - **Authentication**: Firebase Authentication (Google Sign-In, Email/Password)
 - **State Management**: LiveData, ViewModel
 
----
+![Task List](https://imgur.com/a/kaKQ81m)
 
 ## 🚀 Getting Started
 
