@@ -83,13 +83,13 @@ class SignUpViewModel @Inject constructor(
         }
     }
 
-    fun signUp(email: String, password: String, onSuccess: () -> Unit) {
+    fun signUp(onSuccess: () -> Unit) {
 
         if (isSignUpReady()) {
 
             _screenState.update { it.copy(authState = AuthState.Loading) }
 
-            repository.signUp(email, password) { isSuccess, message ->
+            repository.signUp(_screenState.value.email, _screenState.value.password , _screenState.value.name) { isSuccess, message ->
 
                 if (isSuccess) {
 
@@ -97,7 +97,7 @@ class SignUpViewModel @Inject constructor(
 
                         id = System.currentTimeMillis(),
                         name = _screenState.value.name,
-                        email = email,
+                        email = _screenState.value.email,
                         tasks = emptyList(),
                         labels = emptyList()
                     )

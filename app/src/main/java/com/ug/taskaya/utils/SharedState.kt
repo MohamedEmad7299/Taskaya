@@ -35,7 +35,6 @@ object SharedState {
     private val _currentLabel = MutableStateFlow("All")
     val currentLabel = _currentLabel.asStateFlow()
 
-
     fun updateCurrentLabel(label: String) {
         _currentLabel.value = label
     }

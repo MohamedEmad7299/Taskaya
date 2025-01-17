@@ -45,9 +45,10 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    suspend fun addNewUserToFireStore(){
-        if (!userInFireStore())
-        repository.addNewUserToFireStore()
+    suspend fun addNewUserToFireStore() {
+        if (!userInFireStore()) {
+            repository.addNewUserToFireStore()
+        }
     }
 
     private suspend fun userInFireStore(): Boolean{

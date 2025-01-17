@@ -46,7 +46,10 @@ class SettingsViewModel @Inject constructor(
                         )
                     }
 
-                    navController.navigate(Screen.SignInScreen.route)
+                    navController.navigate(Screen.SignInScreen.route){
+                        popUpTo(navController.graph.id){
+                            inclusive = true }
+                    }
                 },
                 onFailure = { exception ->
                     _screenState.update {

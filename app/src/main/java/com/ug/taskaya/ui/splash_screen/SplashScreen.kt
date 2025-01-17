@@ -56,7 +56,7 @@ fun SplashScreen(
             if (viewModel.isSigned())
                 Screen.TasksScreen.route
             else
-                Screen.SignInScreen.route
+                Screen.OnboardingScreen.route
 
         navController.navigate(nextDestination){
 

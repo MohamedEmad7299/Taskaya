@@ -3,6 +3,8 @@ package com.ug.taskaya.ui.reset_password_screen
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,7 +17,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -70,11 +74,28 @@ fun ResetPasswordContent(
     forgetPasswordRequest: (String) -> Unit,
     backToLogin: () -> Unit,
 ){
-    
+
+    val focusManager = LocalFocusManager.current
+
     ConstraintLayout(
         modifier = Modifier
             .background(Color.White)
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        focusManager.clearFocus()
+                    },
+                    onDrag = { change, dragAmount ->
+                        // Handle drag logic here if needed
+                    }
+                )
+            }
     ){
 
 

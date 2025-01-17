@@ -92,8 +92,8 @@ fun StaredTasksContent(
         val datePicker = android.app.DatePickerDialog(
             context,
             { _, year, month, day ->
-
-                val selectedDate = String.format("%02d/%02d/%04d", day, month + 1, year)
+                val selectedDate = LocalDate.of(year, month + 1, day)
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 onClickDate(screenState.taskOnHold.copy(dueDate = selectedDate))
                 showDatePicker.value = false
             },

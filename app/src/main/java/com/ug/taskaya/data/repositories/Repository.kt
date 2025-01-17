@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.ug.taskaya.data.entities.TaskEntity
@@ -243,6 +244,8 @@ class Repository @Inject constructor(
 
     fun getCurrentUserEmail(): String? = firebaseAuth.currentUser?.email
 
+    fun getCurrentUserName(): String? = firebaseAuth.currentUser?.displayName
+
     fun signOut(onComplete: (Result<Unit>) -> Unit) {
         try {
             firebaseAuth.signOut()
@@ -252,7 +255,12 @@ class Repository @Inject constructor(
         }
     }
 
-    fun signUp(email: String, password: String, onComplete: (Boolean, String) -> Unit) {
+    fun signUp(
+        email: String,
+        password: String,
+        displayName: String,
+        onComplete: (Boolean, String) -> Unit
+    ) {
         if (email.isBlank() || password.isBlank()) {
             onComplete(false, "Email or Password can't be empty")
             return
@@ -261,7 +269,23 @@ class Repository @Inject constructor(
         firebaseAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    onComplete(true, "Account Created Successfully")
+                    val user = firebaseAuth.currentUser
+                    if (user != null) {
+                        val profileUpdates = userProfileChangeRequest {
+                            this.displayName = displayName
+                        }
+
+                        user.updateProfile(profileUpdates)
+                            .addOnCompleteListener { updateTask ->
+                                if (updateTask.isSuccessful) {
+                                    onComplete(true, "Account Created Successfully with display name")
+                                } else {
+                                    onComplete(false, "Account created, but failed to set display name")
+                                }
+                            }
+                    } else {
+                        onComplete(false, "Account created, but user is null")
+                    }
                 } else {
                     val errorMessage = mapFirebaseAuthException(task.exception)
                     onComplete(false, errorMessage)

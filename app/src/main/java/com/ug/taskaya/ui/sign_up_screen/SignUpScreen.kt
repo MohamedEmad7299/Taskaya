@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -84,9 +88,9 @@ fun SignUpScreen(
             onPasswordChange = viewModel::onChangePassword,
             onRePasswordChange = viewModel::onChangeRePassword,
             onClickLogin = { navController.popBackStack() },
-            signUp = { viewModel.signUp(screenState.email,
-                screenState.password
-                , { viewModel.navigateTo(navController, Screen.TasksScreen.route, true) }) },
+            signUp = { viewModel.signUp {
+                viewModel.navigateTo(navController, Screen.TasksScreen.route, true)
+            } },
             onNameChange = viewModel::onChangeName,
             signUpWithGoogle = {
 
@@ -118,10 +122,27 @@ fun SignUpContent(
     signUpWithFacebook: () -> Unit
 ) {
 
+    val focusManager = LocalFocusManager.current
+
     ConstraintLayout(
         modifier = Modifier
             .background(Color.White)
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        focusManager.clearFocus()
+                    },
+                    onDrag = { change, dragAmount ->
+                        // Handle drag logic here if needed
+                    }
+                )
+            }
     ) {
 
         val (logo,name,email,pass,confirmPass,loginButton,orText,googleButton,faceButton,alreadyText) = createRefs()

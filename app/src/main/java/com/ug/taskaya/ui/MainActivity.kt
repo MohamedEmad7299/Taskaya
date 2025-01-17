@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.ug.taskaya.data.repositories.FacebookSignInAuth
+import com.ug.taskaya.ui.composables.PieeChart
 import dagger.hilt.android.AndroidEntryPoint
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -19,6 +21,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TaskayaApp(facebookSignInAuth)
+            //PieeChart()
         }
     }
 

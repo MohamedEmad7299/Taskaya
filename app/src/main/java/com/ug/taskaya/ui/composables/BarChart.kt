@@ -1,4 +1,4 @@
-package com.ug.taskaya.utils
+package com.ug.taskaya.ui.composables
 
 
 import androidx.compose.animation.core.Spring
@@ -26,6 +26,7 @@ import com.ug.taskaya.R
 import com.ug.taskaya.data.fake_data.FakeData
 import com.ug.taskaya.ui.theme.LightGreen
 import com.ug.taskaya.ui.theme.Ment
+import com.ug.taskaya.utils.SharedState
 import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
@@ -74,7 +75,7 @@ fun BarChart(
                 .fillMaxWidth()
                 .padding(16.dp)
                 .height(248.dp),
-            maxValue = 100.0,
+            maxValue = 8.0,
             minValue = 0.0,
             labelHelperProperties = LabelHelperProperties(
                 textStyle = TextStyle(

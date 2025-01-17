@@ -59,6 +59,8 @@ import com.ug.taskaya.ui.theme.Gold
 import com.ug.taskaya.ui.theme.Ment
 import com.ug.taskaya.utils.Screen
 import com.ug.taskaya.utils.SharedState
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -125,15 +127,14 @@ fun WritingTaskContent(
         val datePicker = android.app.DatePickerDialog(
             context,
             { _, year, month, day ->
-
-                val selectedDate = String.format("%02d/%02d/%04d", day, month + 1, year)
+                val selectedDate = LocalDate.of(year, month + 1, day)
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 onClickDate(selectedDate)
                 showDatePicker.value = false
             },
-
-            newTask.dueDate.split("/").getOrNull(2)?.toIntOrNull() ?: 2025, // Year
-            newTask.dueDate.split("/").getOrNull(1)?.toIntOrNull()?.minus(1) ?: 0, // Month (0-based)
-            newTask.dueDate.split("/").getOrNull(0)?.toIntOrNull() ?: 1 // Day
+            newTask.dueDate.split("/").getOrNull(2)?.toIntOrNull() ?: 2025,
+            newTask.dueDate.split("/").getOrNull(1)?.toIntOrNull()?.minus(1) ?: 0,
+            newTask.dueDate.split("/").getOrNull(0)?.toIntOrNull() ?: 1
         )
 
         datePicker.datePicker.minDate = java.util.Calendar.getInstance().timeInMillis

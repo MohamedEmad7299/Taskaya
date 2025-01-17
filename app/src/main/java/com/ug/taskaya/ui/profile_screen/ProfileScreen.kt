@@ -1,61 +1,66 @@
 package com.ug.taskaya.ui.profile_screen
 
-import androidx.compose.material3.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ug.taskaya.R
 import com.ug.taskaya.data.fake_data.FakeData
 import com.ug.taskaya.ui.composables.TasksBox
+import com.ug.taskaya.ui.composables.BarChart
+import com.ug.taskaya.ui.composables.PieeChart
+import com.ug.taskaya.utils.Screen
 import com.ug.taskaya.utils.SharedState
 
 @Composable
-fun ProfileScreen(navController: NavController){
+fun ProfileScreen(
+    navController: NavController,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
 
-    ProfileContent()
+    val screenState by viewModel.screenState.collectAsState()
+
+    ProfileContent(
+        screenState = screenState,
+        onClickRank = { navController.navigate(Screen.RanksScreen.route) }
+    )
 }
 
 
-@Preview
 @Composable
-fun ProfileContent(){
-
+fun ProfileContent(
+    screenState : ProfileState,
+    onClickRank: () -> Unit
+){
 
     val scrollState = rememberScrollState()
 
-    val weekDays = listOf("SAT","SUN","MON","TUE","WED","THU","FRI")
-
     val tasks by SharedState.tasks.collectAsState()
+
+    val completedTasksCounter = tasks.filter { it.isCompleted }.size
+    val pendingTasksCounter = tasks.filter { !it.isCompleted }.size
 
     val currentRank = FakeData.getRank(tasks.filter { it.isCompleted }.size)
 
@@ -68,16 +73,18 @@ fun ProfileContent(){
         
         ConstraintLayout{
 
-
             val (name,rank,overview,
-                pendingTasks,chart,weekTasks) = createRefs()
+                pendingTasks, barChart, pieChart) = createRefs()
 
             Text(
-                modifier = Modifier.constrainAs(name){
+                modifier = Modifier
+                    .clickable {
+                        onClickRank()
+                    }.constrainAs(name){
                     top.linkTo(parent.top,24.dp)
                     start.linkTo(parent.start,16.dp)
                 },
-                text = "Mohamed Emad",
+                text = screenState.name,
                 style = TextStyle(
                     fontSize = 24.sp,
                     fontFamily = FontFamily(Font(R.font.inter)),
@@ -88,7 +95,11 @@ fun ProfileContent(){
             )
 
             Text(
-                modifier = Modifier.constrainAs(rank){
+                modifier = Modifier
+                    .clickable {
+                        onClickRank()
+                    }
+                    .constrainAs(rank){
                     top.linkTo(name.bottom)
                     start.linkTo(parent.start,16.dp)
                 },
@@ -128,197 +139,32 @@ fun ProfileContent(){
                 TasksBox(
                     modifier = Modifier
                         .padding(end = 8.dp)
-                        .weight(1f)
+                        .weight(1f),
+                    numberOfTasks = completedTasksCounter
                 )
 
                 TasksBox(
                     label = "Pending Tasks",
                     modifier = Modifier
                         .padding(start = 8.dp)
-                        .weight(1f)
+                        .weight(1f),
+                    numberOfTasks = pendingTasksCounter
                 )
             }
 
-            ConstraintLayout(
+            BarChart(
                 modifier = Modifier
-                    .constrainAs(chart) {
-                        top.linkTo(pendingTasks.bottom, 16.dp)
+                    .constrainAs(barChart) {
+                        top.linkTo(pendingTasks.bottom)
                     }
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .background(Color(0xFFD1E3E2), RoundedCornerShape(5.dp))
-            ){
+            )
 
-                val (chartTitle,arrow,date,lowLine,
-                    days,upperLine,digits,noTasksText) = createRefs()
-
-                Text(
-                    modifier = Modifier
-                        .constrainAs(chartTitle){
-                            top.linkTo(parent.top,16.dp)
-                            start.linkTo(parent.start,16.dp)
-                        },
-                    text = "Completion of Daily Tasks",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(400),
-                        color = Color(0xFF777777),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-
-
-                Icon(
-                    modifier = Modifier
-                        .constrainAs(arrow){
-                            top.linkTo(parent.top,12.dp)
-                            end.linkTo(date.start,2.dp)
-                        },
-                    tint = Color(0xFF777777),
-                    painter = painterResource(id = R.drawable.baseline_arrow_left_24),
-                    contentDescription = "")
-
-
-                Text(
-                    modifier = Modifier
-                        .constrainAs(date){
-                            top.linkTo(parent.top,16.dp)
-                            end.linkTo(parent.end,16.dp)
-                        },
-                    text = "16/8/2024",
-                    style = TextStyle(
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(400),
-                        color = Color(0xFF777777),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-
-                Divider(
-                    modifier = Modifier
-                        .constrainAs(lowLine) {
-                            bottom.linkTo(parent.bottom, 44.dp)
-                        }
-                        .padding(horizontal = 24.dp)
-                        .fillMaxWidth(),
-                    color = Color.Black,
-                    thickness = 0.5.dp
-                )
-
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .constrainAs(days) {
-                            top.linkTo(lowLine.bottom, 8.dp)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                ){
-                    for (i in 0..6){
-
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = weekDays[i],
-                            style = TextStyle(
-                                fontSize = 12.sp,
-                                fontFamily = FontFamily(Font(R.font.inter)),
-                                fontWeight = FontWeight(400),
-                                color = Color(0xFF777777),
-                                textAlign = TextAlign.Center,
-                            )
-                        )
+            PieeChart(
+                modifier = Modifier
+                    .constrainAs(pieChart){
+                        top.linkTo(barChart.bottom)
                     }
-                }
-
-                VerticalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 52.dp)
-                        .constrainAs(upperLine) {
-                            start.linkTo(parent.start, 24.dp)
-                            bottom.linkTo(parent.bottom)
-                            top.linkTo(rank.top)
-                        }
-                        .fillMaxHeight(),
-                    color = Color.Black,
-                    thickness = 0.5.dp
-                )
-
-
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 52.dp)
-                        .constrainAs(digits) {
-                            end.linkTo(upperLine.end, 8.dp)
-                            bottom.linkTo(parent.bottom)
-                            top.linkTo(rank.top)
-                        }
-                        .fillMaxHeight()
-                ){
-                    for (i in 8 downTo 0 step 2){
-
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = i.toString(),
-                            style = TextStyle(
-                                fontSize = 12.sp,
-                                fontFamily = FontFamily(Font(R.font.inter)),
-                                fontWeight = FontWeight(400),
-                                color = Color(0xFF777777),
-                                textAlign = TextAlign.Center,
-                            )
-                        )
-                    }
-                }
-
-                Text(
-                    modifier = Modifier
-                        .constrainAs(noTasksText) {
-                            bottom.linkTo(parent.bottom)
-                            top.linkTo(parent.top)
-                            end.linkTo(parent.end)
-                            start.linkTo(parent.start)
-                        },
-                    text = "No Data",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        lineHeight = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(400),
-                        color = Color(0xFFA5A5A5),
-                        textAlign = TextAlign.Right,
-                    )
-                )
-            }
-
-            Column(
-                Modifier
-                    .constrainAs(weekTasks){
-                        top.linkTo(chart.bottom,16.dp)
-                    }
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clickable {  }
-                    .background(color = Color(0xFFD1E3E2), shape = RoundedCornerShape(size = 5.dp)),
-                verticalArrangement = Arrangement.Center
-            ){
-                Text(
-                    modifier = Modifier.padding(start = 16.dp),
-                    text = "Tasks in Last 7 Days",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.inter)),
-                        fontWeight = FontWeight(400),
-                        color = Color(0xFF777777),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-            }
+            )
         }
     }
 }
